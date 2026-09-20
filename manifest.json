@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "id": "local.keycast",
+  "name": "Keycast",
+  "version": "1.0.0",
+  "author": "kenwi",
+  "description": "On-screen overlay of currently pressed keys, for screen recordings",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Keycast",
+    "description": "Show currently pressed keys in a corner overlay while recording",
+    "category": "Capture",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "overlayEnabled": false,
+      "vertical": "bottom",
+      "horizontal": "left",
+      "padding": 24,
+      "lingerMs": 600
+    },
+    "schema": [
+      {
+        "key": "overlayEnabled",
+        "type": "boolean",
+        "label": "Show pressed keys",
+        "defaultValue": false
+      },
+      {
+        "key": "vertical",
+        "type": "enum",
+        "label": "Vertical edge",
+        "options": ["top", "bottom"],
+        "defaultValue": "bottom"
+      },
+      {
+        "key": "horizontal",
+        "type": "enum",
+        "label": "Horizontal edge",
+        "options": ["left", "right"],
+        "defaultValue": "left"
+      },
+      {
+        "key": "padding",
+        "type": "integer",
+        "label": "Corner padding (px)",
+        "min": 0,
+        "max": 400,
+        "defaultValue": 24
+      },
+      {
+        "key": "lingerMs",
+        "type": "integer",
+        "label": "Linger after release (ms)",
+        "min": 0,
+        "max": 2000,
+        "step": 50,
+        "defaultValue": 600
+      }
+    ]
+  }
+}

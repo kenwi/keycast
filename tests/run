@@ -1,0 +1,39 @@
+#!/usr/bin/env python3
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+root = Path(__file__).resolve().parent.parent
+failed = 0
+
+
+def run(name, command, cwd=None):
+    global failed
+    print(f"== {name}", flush=True)
+    result = subprocess.run(command, cwd=cwd or root)
+    if result.returncode != 0:
+        print(f"FAIL {name}", file=sys.stderr)
+        failed += 1
+    else:
+        print(f"ok {name}", flush=True)
+
+
+run("manifest", ["omarchy", "plugin", "validate", str(root)])
+run("lua-syntax", ["luac", "-p", str(root / "bridge.lua")])
+run("bridge-harness", ["lua", str(root / "tests" / "bridge.lua")])
+run("keys", ["node", str(root / "tests" / "keys.js")])
+
+if shutil.which("qmllint") and os.environ.get("OMARCHY_PATH"):
+    qml = [
+        "qmllint",
+        "-I", os.environ["OMARCHY_PATH"] + "/shell",
+        "BarWidget.qml",
+        "Panel.qml",
+        "Overlay.qml",
+        "Service.qml",
+    ]
+    run("qmllint", qml)
+
+sys.exit(1 if failed else 0)

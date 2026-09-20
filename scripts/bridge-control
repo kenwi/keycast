@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Inspect and patch the Keycast Hyprland bridge block."""
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+BEGIN = "-- >>> Keycast managed bridge >>>"
+END = "-- <<< Keycast managed bridge <<<"
+PLUGIN_ROOT = Path(__file__).resolve().parent.parent
+BRIDGE_PATH = PLUGIN_ROOT / "bridge.lua"
+BLOCK = BEGIN + "\npcall(dofile, " + json.dumps(str(BRIDGE_PATH)) + ")\n" + END
+SNIPPET = BLOCK + "\n"
+
+
+def output(value):
+    print(json.dumps(value, ensure_ascii=False, separators=(",", ":")))
+
+
+def fail(code, message):
+    output({"ok": False, "code": code, "message": message})
+    raise SystemExit(1)
+
+
+def config_path():
+    return Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "hypr" / "hyprland.lua"
+
+
+def state_dir():
+    return Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "omarchy" / "keycast"
+
+
+def marker_state(text):
+    begins = [m.start() for m in re.finditer(re.escape(BEGIN), text)]
+    ends = [m.start() for m in re.finditer(re.escape(END), text)]
+    if not begins and not ends:
+        return "absent", None
+    if len(begins) != 1 or len(ends) != 1 or ends[0] < begins[0]:
+        return "invalid", "malformed-markers"
+    block_end = ends[0] + len(END)
+    current = text[begins[0]:block_end]
+    if current not in (BLOCK, BLOCK + "\n"):
+        return "invalid", "malformed-markers"
+    return "present", None
+
+
+def insertion(text):
+    if text and not text.endswith("\n"):
+        text += "\n"
+    if text and not text.endswith("\n\n"):
+        text += "\n"
+    return text + BLOCK + "\n"
+
+
+def remove_block(text):
+    pattern = re.compile(
+        r"(^|\n)" + re.escape(BEGIN) + r"\n.*?" + re.escape(END) + r"(?=\n|$)\n?",
+        re.S,
+    )
+    return pattern.sub(lambda match: match.group(1), text, count=1)
+
+
+def inspect(logical):
+    result = {
+        "ok": True,
+        "schemaVersion": 1,
+        "logicalPath": str(logical),
+        "resolvedPath": None,
+        "safeToPatch": False,
+        "reasonCode": "missing",
+        "managedBlockState": "absent",
+        "snippet": SNIPPET,
+    }
+    try:
+        target = logical.resolve(strict=True)
+    except FileNotFoundError:
+        return result
+    except OSError:
+        result["reasonCode"] = "unsupported"
+        return result
+
+    result["resolvedPath"] = str(target)
+    try:
+        info = target.stat()
+    except OSError:
+        return result
+    if not stat.S_ISREG(info.st_mode):
+        result["reasonCode"] = "non-regular"
+        return result
+    if info.st_uid != os.getuid():
+        result["reasonCode"] = "wrong-owner"
+        return result
+    if not os.access(target, os.W_OK):
+        result["reasonCode"] = "not-writable"
+        return result
+
+    text = target.read_text(encoding="utf-8")
+    state, reason = marker_state(text)
+    result["managedBlockState"] = state if state != "invalid" else "invalid"
+    if reason:
+        result["reasonCode"] = reason
+        return result
+    result["reasonCode"] = "ok"
+    result["safeToPatch"] = True
+    return result
+
+
+def backup(target):
+    folder = state_dir() / "backups"
+    folder.mkdir(parents=True, exist_ok=True)
+    os.chmod(folder, 0o700)
+    dest = folder / time.strftime("%Y%m%d-%H%M%S-hyprland.lua")
+    shutil.copy2(target, dest)
+    os.chmod(dest, 0o600)
+    return dest
+
+
+def reload_hyprland():
+    subprocess.run(["hyprctl", "reload"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def mutate(action):
+    logical = config_path()
+    result = inspect(logical)
+    if not result["safeToPatch"]:
+        result["ok"] = False
+        output(result)
+        raise SystemExit(1)
+    target = Path(result["resolvedPath"])
+    text = target.read_text(encoding="utf-8")
+    if action == "enable":
+        next_text = text if result["managedBlockState"] == "present" else insertion(text)
+    else:
+        next_text = remove_block(text) if result["managedBlockState"] == "present" else text
+    if next_text != text:
+        backup(target)
+        target.write_text(next_text, encoding="utf-8")
+        reload_hyprland()
+    output(inspect(logical))
+
+
+def main():
+    action = sys.argv[1] if len(sys.argv) > 1 else "inspect"
+    if action == "inspect":
+        output(inspect(config_path()))
+    elif action == "manual-snippet":
+        output({"ok": True, "snippet": SNIPPET})
+    elif action in ("enable", "disable"):
+        mutate(action)
+    else:
+        fail("unsupported", "unknown action")
+
+
+if __name__ == "__main__":
+    main()
