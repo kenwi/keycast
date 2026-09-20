@@ -3,8 +3,11 @@
 // Hyprland's input.keyboard.key callback uses XKB keycodes (Linux evdev + 8).
 var XKB_OFFSET = 8
 var PROTOCOL_PREFIX = "keycast:v1:held:"
-var VERTICALS = ["top", "bottom"]
-var HORIZONTALS = ["left", "right"]
+var VERTICALS = ["top", "middle", "bottom"]
+var HORIZONTALS = ["left", "middle", "right"]
+var SCALE_MIN = 0.75
+var SCALE_MAX = 2
+var SCALE_STEP = 0.25
 var MODIFIER_ORDER = ["Super", "Ctrl", "Alt", "Shift"]
 
 // XKB code -> modifier family. Left and right keys collapse to one label.
@@ -158,6 +161,15 @@ function clampInt(value, min, max, fallback) {
   return Math.max(min, Math.min(max, n))
 }
 
+function clampScale(value) {
+  var n = Number(value)
+  if (!isFinite(n)) return 1
+  n = Math.round(n / SCALE_STEP) * SCALE_STEP
+  if (n < SCALE_MIN) return SCALE_MIN
+  if (n > SCALE_MAX) return SCALE_MAX
+  return n
+}
+
 function pickChoice(value, allowed, fallback) {
   var text = String(value === undefined || value === null ? "" : value).toLowerCase()
   return allowed.indexOf(text) !== -1 ? text : fallback
@@ -218,6 +230,27 @@ function parseProtocol(payload) {
   return { ok: true, codes: codes, labels: labelsForCodes(codes) }
 }
 
+function hasNewLabel(previous, next) {
+  if (!Array.isArray(next) || next.length === 0) return false
+  if (!Array.isArray(previous) || previous.length === 0) return true
+  if (next.length > previous.length) return true
+  for (var i = 0; i < next.length; i++) {
+    if (previous.indexOf(next[i]) === -1) return true
+  }
+  return false
+}
+
+// Keep the last full chord while any of its keys are still held. Super+Left
+// then releasing Left must stay Super+Left, not collapse to Super. A later
+// press (Super+Right) replaces the chord.
+function displayedAfterHeld(previousHeld, nextHeld, currentDisplayed) {
+  var next = Array.isArray(nextHeld) ? nextHeld.slice() : []
+  var shown = Array.isArray(currentDisplayed) ? currentDisplayed.slice() : []
+  if (next.length === 0) return shown
+  if (hasNewLabel(previousHeld, next) || shown.length === 0) return next
+  return shown
+}
+
 function settingsFromBar(barConfig, pluginId) {
   var id = String(pluginId || "")
   var layout = barConfig && barConfig.layout ? barConfig.layout : null
@@ -234,13 +267,34 @@ function settingsFromBar(barConfig, pluginId) {
 
 function normalizeSettings(entry) {
   var src = entry && typeof entry === "object" ? entry : {}
+  var frameRaw = src.frameEnabled
   return {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
+    frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
+      ? true : isEnabledFlag(frameRaw),
     vertical: pickChoice(src.vertical, VERTICALS, "bottom"),
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "left"),
     padding: clampInt(src.padding, 0, 400, 24),
+    scale: clampScale(src.scale),
     lingerMs: clampInt(src.lingerMs, 0, 2000, 600)
   }
+}
+
+function axisPosition(edge, endEdge, size, parentSize, padding) {
+  var box = Math.max(0, Number(size) || 0)
+  var span = Math.max(0, Number(parentSize) || 0)
+  var pad = Math.max(0, Number(padding) || 0)
+  if (edge === "middle") return Math.max(0, Math.round((span - box) / 2))
+  if (edge === endEdge) return Math.max(0, span - box - pad)
+  return Math.max(0, pad)
+}
+
+function overlayX(horizontal, width, parentWidth, padding) {
+  return axisPosition(horizontal, "right", width, parentWidth, padding)
+}
+
+function overlayY(vertical, height, parentHeight, padding) {
+  return axisPosition(vertical, "bottom", height, parentHeight, padding)
 }
 
 if (typeof module !== "undefined") {
@@ -250,6 +304,10 @@ if (typeof module !== "undefined") {
     labelFor: labelFor,
     labelsForCodes: labelsForCodes,
     parseProtocol: parseProtocol,
+    displayedAfterHeld: displayedAfterHeld,
+    overlayX: overlayX,
+    overlayY: overlayY,
+    clampScale: clampScale,
     normalizeSettings: normalizeSettings,
     settingsFromBar: settingsFromBar
   }

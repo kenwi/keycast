@@ -33,20 +33,47 @@ const settings = Keys.normalizeSettings({
   lingerMs: 1200
 })
 assert(settings.overlayEnabled === true, "overlay flag")
+assert(settings.frameEnabled === true, "frame default when unset")
 assert(settings.vertical === "top", "vertical")
 assert(settings.horizontal === "right", "horizontal")
 assert(settings.padding === 80, "padding")
+assert(settings.scale === 1, "scale default when unset")
 assert(settings.lingerMs === 1200, "linger")
 
 const defaults = Keys.normalizeSettings({})
 assert(defaults.overlayEnabled === false, "overlay default")
+assert(defaults.frameEnabled === true, "frame default")
 assert(defaults.vertical === "bottom", "vertical default")
 assert(defaults.horizontal === "left", "horizontal default")
 assert(defaults.padding === 24, "padding default")
+assert(defaults.scale === 1, "scale default")
 
 const fromBar = Keys.settingsFromBar({
   layout: { right: [{ id: "local.keycast", padding: 12 }] }
 }, "local.keycast")
 assert(fromBar.padding === 12, "bar settings")
+assert(Keys.normalizeSettings({ frameEnabled: "off" }).frameEnabled === false, "frame off")
+assert(Keys.normalizeSettings({ frameEnabled: false }).frameEnabled === false, "frame false")
+
+assert(Keys.displayedAfterHeld([], ["Super"], []).join(",") === "Super", "super down")
+assert(Keys.displayedAfterHeld(["Super"], ["Super", "Left"], ["Super"]).join(",") === "Super,Left", "super+left down")
+assert(Keys.displayedAfterHeld(["Super", "Left"], ["Super"], ["Super", "Left"]).join(",") === "Super,Left", "left up keeps chord")
+assert(Keys.displayedAfterHeld(["Super"], ["Super", "Right"], ["Super", "Left"]).join(",") === "Super,Right", "next key replaces chord")
+assert(Keys.displayedAfterHeld(["Super", "Right"], [], ["Super", "Right"]).join(",") === "Super,Right", "all up keeps chord for linger")
+
+assert(Keys.normalizeSettings({ vertical: "middle", horizontal: "MIDDLE" }).vertical === "middle", "vertical middle")
+assert(Keys.normalizeSettings({ vertical: "middle", horizontal: "MIDDLE" }).horizontal === "middle", "horizontal middle")
+assert(Keys.overlayX("left", 100, 1000, 24) === 24, "x left uses padding")
+assert(Keys.overlayX("right", 100, 1000, 24) === 876, "x right uses padding")
+assert(Keys.overlayX("middle", 100, 1000, 24) === 450, "x middle ignores padding")
+assert(Keys.overlayY("top", 40, 800, 24) === 24, "y top uses padding")
+assert(Keys.overlayY("bottom", 40, 800, 24) === 736, "y bottom uses padding")
+assert(Keys.overlayY("middle", 40, 800, 24) === 380, "y middle ignores padding")
+assert(Keys.clampScale(1.25) === 1.25, "scale 1.25")
+assert(Keys.clampScale("1.5") === 1.5, "scale string")
+assert(Keys.clampScale(1.3) === 1.25, "scale snaps")
+assert(Keys.clampScale(3) === 2, "scale max")
+assert(Keys.clampScale(0) === 0.75, "scale min")
+assert(Keys.normalizeSettings({ scale: 1.75 }).scale === 1.75, "settings scale")
 
 console.log("keys ok")

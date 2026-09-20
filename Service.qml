@@ -12,9 +12,11 @@ Item {
   property var manifest: null
 
   property bool overlayEnabled: false
+  property bool frameEnabled: true
   property string vertical: "bottom"
   property string horizontal: "left"
   property int padding: 24
+  property real scaleFactor: 1
   property int lingerMs: 600
   property var heldKeys: []
   property var displayedKeys: []
@@ -43,9 +45,11 @@ Item {
   function applySettings(entry) {
     var next = Keys.normalizeSettings(entry)
     overlayEnabled = next.overlayEnabled
+    frameEnabled = next.frameEnabled
     vertical = next.vertical
     horizontal = next.horizontal
     padding = next.padding
+    scaleFactor = next.scale
     lingerMs = next.lingerMs
     lingerTimer.interval = Math.max(1, next.lingerMs)
     if (!overlayEnabled) {
@@ -60,9 +64,11 @@ Item {
     var next = {
       id: root.moduleName,
       overlayEnabled: overlayEnabled,
+      frameEnabled: frameEnabled,
       vertical: vertical,
       horizontal: horizontal,
       padding: padding,
+      scale: scaleFactor,
       lingerMs: lingerMs
     }
     for (var changed in changes) next[changed] = changes[changed]
@@ -75,6 +81,12 @@ Item {
     var next = Keys.isEnabledFlag(value)
     if (next === overlayEnabled) return false
     return persistSettings({ overlayEnabled: next })
+  }
+
+  function setFrameEnabled(value) {
+    var next = Keys.normalizeSettings({ frameEnabled: value }).frameEnabled
+    if (next === frameEnabled) return false
+    return persistSettings({ frameEnabled: next })
   }
 
   function setVertical(value) {
@@ -95,6 +107,12 @@ Item {
     return persistSettings({ padding: next })
   }
 
+  function setScale(value) {
+    var next = Keys.normalizeSettings({ scale: value }).scale
+    if (next === scaleFactor) return false
+    return persistSettings({ scale: next })
+  }
+
   function setLingerMs(value) {
     var next = Keys.normalizeSettings({ lingerMs: value }).lingerMs
     if (next === lingerMs) return false
@@ -106,15 +124,16 @@ Item {
   }
 
   function applyHeldLabels(labels) {
+    var nextDisplay = Keys.displayedAfterHeld(heldKeys, labels, displayedKeys)
     heldKeys = labels
     if (!overlayEnabled) {
       lingerTimer.stop()
       displayedKeys = []
       return
     }
+    displayedKeys = nextDisplay
     if (labels.length > 0) {
       lingerTimer.stop()
-      displayedKeys = labels
       return
     }
     if (lingerMs <= 0 || displayedKeys.length === 0) {

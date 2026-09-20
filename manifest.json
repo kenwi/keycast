@@ -21,9 +21,11 @@
     "defaultSection": "right",
     "defaults": {
       "overlayEnabled": false,
+      "frameEnabled": true,
       "vertical": "bottom",
       "horizontal": "left",
       "padding": 24,
+      "scale": 1,
       "lingerMs": 600
     },
     "schema": [
@@ -34,26 +36,41 @@
         "defaultValue": false
       },
       {
+        "key": "frameEnabled",
+        "type": "boolean",
+        "label": "Outer box",
+        "description": "Background and border around the keycaps",
+        "defaultValue": true
+      },
+      {
         "key": "vertical",
         "type": "enum",
         "label": "Vertical edge",
-        "options": ["top", "bottom"],
+        "options": ["top", "middle", "bottom"],
         "defaultValue": "bottom"
       },
       {
         "key": "horizontal",
         "type": "enum",
         "label": "Horizontal edge",
-        "options": ["left", "right"],
+        "options": ["left", "middle", "right"],
         "defaultValue": "left"
       },
       {
         "key": "padding",
         "type": "integer",
-        "label": "Corner padding (px)",
+        "label": "Edge padding (px)",
+        "description": "Distance from the chosen edge. Ignored on an axis set to middle.",
         "min": 0,
         "max": 400,
         "defaultValue": 24
+      },
+      {
+        "key": "scale",
+        "type": "enum",
+        "label": "Overlay scale",
+        "options": ["1", "1.25", "1.5", "1.75", "2"],
+        "defaultValue": "1"
       },
       {
         "key": "lingerMs",

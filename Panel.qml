@@ -144,6 +144,16 @@ Panel {
           onClicked: if (root.service) root.service.setOverlayEnabled(!root.overlayOn)
         }
 
+        Toggle {
+          width: parent.width
+          label: "Outer box"
+          description: "Background and border around the keys. Off shows only the rounded keycaps."
+          checked: root.service ? root.service.frameEnabled !== false : true
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          onClicked: if (root.service) root.service.setFrameEnabled(!(root.service.frameEnabled !== false))
+        }
+
         PanelSeparator { width: parent.width; strength: 0.09 }
 
         PanelSectionHeader {
@@ -158,6 +168,7 @@ Panel {
           value: root.service ? root.service.vertical : "bottom"
           options: [
             { value: "top", label: "Top" },
+            { value: "middle", label: "Middle" },
             { value: "bottom", label: "Bottom" }
           ]
           onChanged: function(value) { if (root.service) root.service.setVertical(value) }
@@ -175,6 +186,7 @@ Panel {
           value: root.service ? root.service.horizontal : "left"
           options: [
             { value: "left", label: "Left" },
+            { value: "middle", label: "Middle" },
             { value: "right", label: "Right" }
           ]
           onChanged: function(value) { if (root.service) root.service.setHorizontal(value) }
@@ -182,13 +194,33 @@ Panel {
 
         NumberField {
           width: parent.width
-          label: "Corner padding (px)"
+          label: "Edge padding (px)"
           value: root.service ? root.service.padding : 24
           from: 0
           to: 400
           foreground: root.fg
           fontFamily: root.fontFamily
           onModified: function(value) { if (root.service) root.service.setPadding(value) }
+        }
+
+        PanelSectionHeader {
+          text: "SCALE"
+          foreground: root.fg
+          fontFamily: root.fontFamily
+        }
+        ButtonGroup {
+          width: parent.width
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          value: root.service ? String(root.service.scaleFactor) : "1"
+          options: [
+            { value: "1", label: "1x" },
+            { value: "1.25", label: "1.25x" },
+            { value: "1.5", label: "1.5x" },
+            { value: "1.75", label: "1.75x" },
+            { value: "2", label: "2x" }
+          ]
+          onChanged: function(value) { if (root.service) root.service.setScale(value) }
         }
 
         NumberField {

@@ -10,9 +10,9 @@ configurable.
 
 - Shows the keys that are currently held, not a typing history
 - Default position: bottom left
-- Configurable vertical edge (`top` / `bottom`)
-- Configurable horizontal edge (`left` / `right`)
-- Configurable padding from the chosen corner (0-400 px, default 24)
+- Configurable vertical edge (`top` / `middle` / `bottom`)
+- Configurable horizontal edge (`left` / `middle` / `right`)
+- Configurable padding from the chosen edge (0-400 px, default 24; ignored on a middle axis)
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for position, padding, and the Hyprland bridge
@@ -51,9 +51,11 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 {
   "id": "local.keycast",
   "overlayEnabled": false,
+  "frameEnabled": true,
   "vertical": "bottom",
   "horizontal": "left",
   "padding": 24,
+  "scale": 1,
   "lingerMs": 600
 }
 ```
@@ -61,17 +63,21 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | Key | Values | Default |
 |-----|--------|---------|
 | `overlayEnabled` | `true` / `false` | `false` |
-| `vertical` | `top` / `bottom` | `bottom` |
-| `horizontal` | `left` / `right` | `left` |
-| `padding` | 0-400 px | `24` |
+| `frameEnabled` | `true` / `false` | `true` |
+| `vertical` | `top` / `middle` / `bottom` | `bottom` |
+| `horizontal` | `left` / `middle` / `right` | `left` |
+| `padding` | 0-400 px | `24` (ignored on a middle axis) |
+| `scale` | `1` / `1.25` / `1.5` / `1.75` / `2` | `1` |
 | `lingerMs` | 0-2000 ms | `600` |
 
 CLI examples:
 
 ```bash
-omarchy bar set local.keycast vertical top
-omarchy bar set local.keycast horizontal right
+omarchy bar set local.keycast vertical middle
+omarchy bar set local.keycast horizontal middle
 omarchy bar set local.keycast padding 40
+omarchy bar set local.keycast scale 1.25
+omarchy bar set local.keycast frameEnabled false
 omarchy-shell local.keycast toggle
 ```
 
