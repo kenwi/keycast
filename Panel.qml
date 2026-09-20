@@ -154,6 +154,27 @@ Panel {
           onClicked: if (root.service) root.service.setFrameEnabled(!(root.service.frameEnabled !== false))
         }
 
+        Toggle {
+          width: parent.width
+          label: "Rounded corners"
+          description: "Round the outer box and keycaps. Off draws square corners."
+          checked: root.service ? root.service.roundingEnabled !== false : true
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          onClicked: if (root.service) root.service.setRoundingEnabled(!(root.service.roundingEnabled !== false))
+        }
+
+        NumberField {
+          width: parent.width
+          label: "Corner radius (px)"
+          value: root.service ? root.service.rounding : 8
+          from: 0
+          to: 32
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          onModified: function(value) { if (root.service) root.service.setRounding(value) }
+        }
+
         PanelSeparator { width: parent.width; strength: 0.09 }
 
         PanelSectionHeader {

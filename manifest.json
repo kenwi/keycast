@@ -22,6 +22,8 @@
     "defaults": {
       "overlayEnabled": false,
       "frameEnabled": true,
+      "roundingEnabled": true,
+      "rounding": 8,
       "vertical": "bottom",
       "horizontal": "left",
       "padding": 24,
@@ -41,6 +43,20 @@
         "label": "Outer box",
         "description": "Background and border around the keycaps",
         "defaultValue": true
+      },
+      {
+        "key": "roundingEnabled",
+        "type": "boolean",
+        "label": "Rounded corners",
+        "defaultValue": true
+      },
+      {
+        "key": "rounding",
+        "type": "integer",
+        "label": "Corner radius (px)",
+        "min": 0,
+        "max": 32,
+        "defaultValue": 8
       },
       {
         "key": "vertical",

@@ -3,7 +3,7 @@
 On-screen overlay of currently pressed keys, for screen recordings.
 
 The overlay is a click-through box of keycaps. It defaults to the lower-left
-corner. Vertical edge, horizontal edge, and padding from that corner are
+corner. Position, padding, scale, outer box, and corner rounding are
 configurable.
 
 ## Features
@@ -13,9 +13,12 @@ configurable.
 - Configurable vertical edge (`top` / `middle` / `bottom`)
 - Configurable horizontal edge (`left` / `middle` / `right`)
 - Configurable padding from the chosen edge (0-400 px, default 24; ignored on a middle axis)
+- Optional outer box around the keycaps
+- Optional corner rounding (0-32 px, default 8)
+- Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x`)
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
-- Right-click the bar icon for position, padding, and the Hyprland bridge
+- Right-click the bar icon for position, look, and the Hyprland bridge
 - IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`)
 
 ## Privacy
@@ -52,6 +55,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "id": "local.keycast",
   "overlayEnabled": false,
   "frameEnabled": true,
+  "roundingEnabled": true,
+  "rounding": 8,
   "vertical": "bottom",
   "horizontal": "left",
   "padding": 24,
@@ -64,6 +69,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 |-----|--------|---------|
 | `overlayEnabled` | `true` / `false` | `false` |
 | `frameEnabled` | `true` / `false` | `true` |
+| `roundingEnabled` | `true` / `false` | `true` |
+| `rounding` | 0-32 px | `8` |
 | `vertical` | `top` / `middle` / `bottom` | `bottom` |
 | `horizontal` | `left` / `middle` / `right` | `left` |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
@@ -78,6 +85,8 @@ omarchy bar set local.keycast horizontal middle
 omarchy bar set local.keycast padding 40
 omarchy bar set local.keycast scale 1.25
 omarchy bar set local.keycast frameEnabled false
+omarchy bar set local.keycast roundingEnabled false
+omarchy bar set local.keycast rounding 12
 omarchy-shell local.keycast toggle
 ```
 
@@ -89,7 +98,7 @@ omarchy-shell local.keycast toggle
 | `Service.qml` | Bridge events, overlay state, IPC, settings |
 | `Overlay.qml` | Click-through corner box on every monitor |
 | `BarWidget.qml` | Toggle + settings panel host |
-| `Panel.qml` | Bridge setup, position, padding, linger |
+| `Panel.qml` | Bridge setup, position, look, linger |
 | `Keys.js` | Keycode labels, protocol parse, settings normalize |
 | `bridge.lua` | Hyprland `input.keyboard.key` observer |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |

@@ -272,6 +272,9 @@ function normalizeSettings(entry) {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
       ? true : isEnabledFlag(frameRaw),
+    roundingEnabled: src.roundingEnabled === undefined || src.roundingEnabled === null || src.roundingEnabled === ""
+      ? true : isEnabledFlag(src.roundingEnabled),
+    rounding: clampInt(src.rounding, 0, 32, 8),
     vertical: pickChoice(src.vertical, VERTICALS, "bottom"),
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "left"),
     padding: clampInt(src.padding, 0, 400, 24),
@@ -297,6 +300,13 @@ function overlayY(vertical, height, parentHeight, padding) {
   return axisPosition(vertical, "bottom", height, parentHeight, padding)
 }
 
+function overlayRadius(roundingEnabled, rounding) {
+  var enabled = roundingEnabled === undefined || roundingEnabled === null || roundingEnabled === ""
+    ? true : isEnabledFlag(roundingEnabled)
+  if (!enabled) return 0
+  return clampInt(rounding, 0, 32, 8)
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     XKB_OFFSET: XKB_OFFSET,
@@ -307,6 +317,7 @@ if (typeof module !== "undefined") {
     displayedAfterHeld: displayedAfterHeld,
     overlayX: overlayX,
     overlayY: overlayY,
+    overlayRadius: overlayRadius,
     clampScale: clampScale,
     normalizeSettings: normalizeSettings,
     settingsFromBar: settingsFromBar

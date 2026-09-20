@@ -18,6 +18,8 @@ Item {
   readonly property string horizontal: service ? String(service.horizontal || "left") : "left"
   readonly property int pad: service ? Math.max(0, Number(service.padding || 0)) : 24
   readonly property real overlayScale: service ? Number(service.scaleFactor || 1) : 1
+  readonly property int cornerPx: service
+    ? Keys.overlayRadius(service.roundingEnabled, service.rounding) : 8
   readonly property int framePadX: frameOn ? Style.space(16) : 0
   readonly property int framePadY: frameOn ? Style.space(12) : 0
 
@@ -74,7 +76,7 @@ Item {
             visible: root.frameOn
             color: Util.alpha(Color.background, 0.94)
             borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
-            radius: Style.cornerRadius
+            radius: root.cornerPx
           }
 
           Row {
@@ -95,7 +97,7 @@ Item {
                   ? Util.alpha(Color.popups.text, 0.10)
                   : Util.alpha(Color.background, 0.94)
                 borderSpec: Border.flat(Util.alpha(Color.popups.text, root.frameOn ? 0.22 : 0.35), 1)
-                radius: Math.max(4, Style.cornerRadius - 2)
+                radius: root.cornerPx
 
                 Text {
                   id: keyLabel

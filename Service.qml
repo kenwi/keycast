@@ -13,6 +13,8 @@ Item {
 
   property bool overlayEnabled: false
   property bool frameEnabled: true
+  property bool roundingEnabled: true
+  property int rounding: 8
   property string vertical: "bottom"
   property string horizontal: "left"
   property int padding: 24
@@ -46,6 +48,8 @@ Item {
     var next = Keys.normalizeSettings(entry)
     overlayEnabled = next.overlayEnabled
     frameEnabled = next.frameEnabled
+    roundingEnabled = next.roundingEnabled
+    rounding = next.rounding
     vertical = next.vertical
     horizontal = next.horizontal
     padding = next.padding
@@ -65,6 +69,8 @@ Item {
       id: root.moduleName,
       overlayEnabled: overlayEnabled,
       frameEnabled: frameEnabled,
+      roundingEnabled: roundingEnabled,
+      rounding: rounding,
       vertical: vertical,
       horizontal: horizontal,
       padding: padding,
@@ -87,6 +93,18 @@ Item {
     var next = Keys.normalizeSettings({ frameEnabled: value }).frameEnabled
     if (next === frameEnabled) return false
     return persistSettings({ frameEnabled: next })
+  }
+
+  function setRoundingEnabled(value) {
+    var next = Keys.normalizeSettings({ roundingEnabled: value }).roundingEnabled
+    if (next === roundingEnabled) return false
+    return persistSettings({ roundingEnabled: next })
+  }
+
+  function setRounding(value) {
+    var next = Keys.normalizeSettings({ rounding: value }).rounding
+    if (next === rounding) return false
+    return persistSettings({ rounding: next })
   }
 
   function setVertical(value) {
