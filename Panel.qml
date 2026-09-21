@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import Quickshell
 import qs.Commons
 import qs.Ui
@@ -79,7 +78,6 @@ Panel {
         boundsBehavior: Flickable.StopAtBounds
         flickableDirection: Flickable.VerticalFlick
         interactive: contentHeight > height
-        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
         Column {
           id: contentColumn
