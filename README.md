@@ -6,6 +6,20 @@ The overlay is a click-through box of keycaps. It defaults to the lower-left
 corner. Position, padding, scale, outer box, corner rounding, and an optional
 shortcut action label are configurable.
 
+![Key overlay](screenshots/overlay.png)
+
+*Overlay - currently held keys as keycaps, with the Hyprland bind description
+underneath. Super+W shows Close window, the same text Super+K lists for that
+shortcut. The box is click-through so it does not steal clicks in a recording.*
+
+![Settings panel](screenshots/configuration.png)
+
+*Configuration - right-click the bar icon to open this panel. Turn the overlay
+on, choose outer box and rounding, place it on an edge or in the middle, set
+padding and scale, linger after release, and optionally show the shortcut
+action above or below the keys. The first-time Hyprland bridge install lives
+here too.*
+
 ## Features
 
 - Shows the keys that are currently held, not a typing history
@@ -47,6 +61,24 @@ Hyprland. Left-click the icon to show the overlay, then hold keys to preview it.
 
 Saved plugin files reload automatically. If the plugin is a symlink, prefer
 `omarchy restart shell` after edits so QML definitely reloads.
+
+## Hotkey
+
+Add a bind in `~/.config/hypr/bindings.lua` so you can show or hide the overlay
+without clicking the bar. Super+K already opens the keybindings list; Super+Shift+K
+is free in Omarchy defaults and stays next to that:
+
+```lua
+o.bind("SUPER + SHIFT + K", "Toggle keycast", "omarchy-shell local.keycast toggle")
+```
+
+Reload Hyprland after saving. The description appears in Super+K. Pick any unused
+combo if you already bound that one. One-way variants:
+
+```lua
+o.bind("SUPER + SHIFT + K", "Show keycast", "omarchy-shell local.keycast show")
+o.bind("SUPER + SHIFT + L", "Hide keycast", "omarchy-shell local.keycast hide")
+```
 
 ## Settings
 
@@ -110,6 +142,7 @@ omarchy-shell local.keycast toggle
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
 | `bridge.lua` | Hyprland `input.keyboard.key` observer |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
+| `screenshots/` | Overlay and settings panel images for this README |
 | `README.md` | This file |
 
 ## Tests
