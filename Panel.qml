@@ -62,7 +62,8 @@ Panel {
     centerOnBar: false
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight, Style.space(560))
+    contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight,
+      panel.availableCardHeight > 0 ? panel.availableCardHeight : Style.space(560))
 
     PanelKeyCatcher {
       id: keyCatcher
