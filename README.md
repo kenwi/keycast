@@ -3,8 +3,8 @@
 On-screen overlay of currently pressed keys, for screen recordings.
 
 The overlay is a click-through box of keycaps. It defaults to the lower-left
-corner. Position, padding, scale, outer box, and corner rounding are
-configurable.
+corner. Position, padding, scale, outer box, corner rounding, and an optional
+shortcut action label are configurable.
 
 ## Features
 
@@ -16,6 +16,8 @@ configurable.
 - Optional outer box around the keycaps
 - Optional corner rounding (0-32 px, default 8)
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x`)
+- Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
+- Action placement above or below the keycaps
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for position, look, and the Hyprland bridge
@@ -61,7 +63,9 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "horizontal": "left",
   "padding": 24,
   "scale": 1,
-  "lingerMs": 600
+  "lingerMs": 600,
+  "actionEnabled": true,
+  "actionPosition": "below"
 }
 ```
 
@@ -76,6 +80,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2` | `1` |
 | `lingerMs` | 0-2000 ms | `600` |
+| `actionEnabled` | `true` / `false` | `true` |
+| `actionPosition` | `above` / `below` | `below` |
 
 CLI examples:
 
@@ -87,6 +93,8 @@ omarchy bar set local.keycast scale 1.25
 omarchy bar set local.keycast frameEnabled false
 omarchy bar set local.keycast roundingEnabled false
 omarchy bar set local.keycast rounding 12
+omarchy bar set local.keycast actionEnabled true
+omarchy bar set local.keycast actionPosition above
 omarchy-shell local.keycast toggle
 ```
 
@@ -98,8 +106,8 @@ omarchy-shell local.keycast toggle
 | `Service.qml` | Bridge events, overlay state, IPC, settings |
 | `Overlay.qml` | Click-through corner box on every monitor |
 | `BarWidget.qml` | Toggle + settings panel host |
-| `Panel.qml` | Bridge setup, position, look, linger |
-| `Keys.js` | Keycode labels, protocol parse, settings normalize |
+| `Panel.qml` | Bridge setup, position, look, linger, action label |
+| `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
 | `bridge.lua` | Hyprland `input.keyboard.key` observer |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
 | `README.md` | This file |

@@ -5,10 +5,70 @@ var XKB_OFFSET = 8
 var PROTOCOL_PREFIX = "keycast:v1:held:"
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
+var ACTION_POSITIONS = ["above", "below"]
 var SCALE_MIN = 0.75
 var SCALE_MAX = 2
 var SCALE_STEP = 0.25
 var MODIFIER_ORDER = ["Super", "Ctrl", "Alt", "Shift"]
+var COMBO_MOD_ORDER = ["SUPER", "CTRL", "ALT", "SHIFT"]
+var MODMASK_SUPER = 64
+var MODMASK_CTRL = 4
+var MODMASK_ALT = 8
+var MODMASK_SHIFT = 1
+var BIND_KEY_TOKENS = {
+  RETURN: "ENTER",
+  ESCAPE: "ESC",
+  COMMA: ",",
+  PERIOD: ".",
+  SLASH: "/",
+  MINUS: "-",
+  EQUAL: "=",
+  SEMICOLON: ";",
+  APOSTROPHE: "'",
+  GRAVE: "`",
+  BRACKETLEFT: "[",
+  BRACKETRIGHT: "]",
+  BACKSLASH: "\\",
+  PRIOR: "PAGE UP",
+  PAGE_UP: "PAGE UP",
+  NEXT: "PAGE DOWN",
+  PAGE_DOWN: "PAGE DOWN",
+  SPACE: "SPACE",
+  TAB: "TAB",
+  BACKSPACE: "BACKSPACE",
+  DELETE: "DELETE",
+  LEFT: "LEFT",
+  RIGHT: "RIGHT",
+  UP: "UP",
+  DOWN: "DOWN",
+  HOME: "HOME",
+  END: "END",
+  INSERT: "INSERT",
+  PRINT: "PRINT"
+}
+var LABEL_TOKENS = {
+  Super: "SUPER",
+  Ctrl: "CTRL",
+  Alt: "ALT",
+  Shift: "SHIFT",
+  Enter: "ENTER",
+  Esc: "ESC",
+  "Page Up": "PAGE UP",
+  "Page Down": "PAGE DOWN",
+  Backspace: "BACKSPACE",
+  Tab: "TAB",
+  Space: "SPACE",
+  Left: "LEFT",
+  Right: "RIGHT",
+  Up: "UP",
+  Down: "DOWN",
+  Home: "HOME",
+  End: "END",
+  Insert: "INSERT",
+  Delete: "DELETE",
+  Caps: "CAPS",
+  Print: "PRINT"
+}
 
 // XKB code -> modifier family. Left and right keys collapse to one label.
 var MODIFIER_GROUP = {
@@ -251,6 +311,123 @@ function displayedAfterHeld(previousHeld, nextHeld, currentDisplayed) {
   return shown
 }
 
+function isComboModifier(token) {
+  return token === "SUPER" || token === "CTRL" || token === "ALT" || token === "SHIFT"
+}
+
+function labelToken(label) {
+  var text = String(label || "")
+  if (LABEL_TOKENS[text]) return LABEL_TOKENS[text]
+  return text.toUpperCase()
+}
+
+function bindNameToken(name) {
+  var text = String(name || "").trim()
+  if (text === "") return ""
+  var upper = text.toUpperCase()
+  if (BIND_KEY_TOKENS[upper]) return BIND_KEY_TOKENS[upper]
+  return upper
+}
+
+function bindKeyToken(key) {
+  var text = String(key || "").trim()
+  if (text === "") return ""
+  if (/^mouse:/.test(text) || /^mouse_/.test(text) || /^switch:/.test(text)) return ""
+  var codeMatch = text.match(/code:(\d+)\s*$/)
+  if (codeMatch) {
+    var code = parseInt(codeMatch[1], 10)
+    var fromCode = labelFor(code)
+    if (fromCode.indexOf("Key ") === 0) return "CODE:" + code
+    return labelToken(fromCode)
+  }
+  if (text.indexOf(" + ") !== -1) {
+    var parts = text.split(" + ")
+    text = parts[parts.length - 1]
+  }
+  return bindNameToken(text)
+}
+
+function comboFromModsAndToken(seenMods, token) {
+  if (!token) return ""
+  var ordered = []
+  for (var i = 0; i < COMBO_MOD_ORDER.length; i++) {
+    if (seenMods[COMBO_MOD_ORDER[i]]) ordered.push(COMBO_MOD_ORDER[i])
+  }
+  return ordered.concat([token]).join("+")
+}
+
+function comboFromModmaskAndKey(modmask, key) {
+  var mask = Math.floor(Number(modmask))
+  if (!isFinite(mask)) mask = 0
+  var seen = {}
+  if (mask & MODMASK_SUPER) seen.SUPER = true
+  if (mask & MODMASK_CTRL) seen.CTRL = true
+  if (mask & MODMASK_ALT) seen.ALT = true
+  if (mask & MODMASK_SHIFT) seen.SHIFT = true
+  return comboFromModsAndToken(seen, bindKeyToken(key))
+}
+
+function comboFromLabels(labels) {
+  if (!Array.isArray(labels) || labels.length === 0) return ""
+  var seen = {}
+  var keys = []
+  for (var i = 0; i < labels.length; i++) {
+    var token = labelToken(labels[i])
+    if (token === "") continue
+    if (isComboModifier(token)) {
+      seen[token] = true
+      continue
+    }
+    keys.push(token)
+  }
+  if (keys.length === 0) return ""
+  return comboFromModsAndToken(seen, keys[keys.length - 1])
+}
+
+function parseBindRecords(text) {
+  var records = []
+  var current = null
+  var lines = String(text || "").split("\n")
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i]
+    if (/^bind/.test(line)) {
+      if (current) records.push(current)
+      current = {}
+      continue
+    }
+    var match = line.match(/^\t([^:]+):\s?(.*)$/)
+    if (match && current) current[match[1]] = match[2]
+  }
+  if (current) records.push(current)
+  return records
+}
+
+function parseBinds(text) {
+  var catalog = {}
+  var records = parseBindRecords(text)
+  for (var i = 0; i < records.length; i++) {
+    var record = records[i]
+    var description = String(record.description || "").trim()
+    if (description === "") continue
+    var combo = comboFromModmaskAndKey(record.modmask, record.key)
+    if (combo === "") continue
+    if (!catalog[combo]) catalog[combo] = description
+  }
+  return catalog
+}
+
+function actionForLabels(catalog, labels) {
+  if (!catalog || typeof catalog !== "object") return ""
+  var combo = comboFromLabels(labels)
+  if (combo === "") return ""
+  return catalog[combo] || ""
+}
+
+function isCatalogChangeEvent(name) {
+  var text = String(name || "")
+  return text === "configreloaded" || text === "configreloadedv2"
+}
+
 function settingsFromBar(barConfig, pluginId) {
   var id = String(pluginId || "")
   var layout = barConfig && barConfig.layout ? barConfig.layout : null
@@ -279,7 +456,10 @@ function normalizeSettings(entry) {
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "left"),
     padding: clampInt(src.padding, 0, 400, 24),
     scale: clampScale(src.scale),
-    lingerMs: clampInt(src.lingerMs, 0, 2000, 600)
+    lingerMs: clampInt(src.lingerMs, 0, 2000, 600),
+    actionEnabled: src.actionEnabled === undefined || src.actionEnabled === null || src.actionEnabled === ""
+      ? true : isEnabledFlag(src.actionEnabled),
+    actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below")
   }
 }
 
@@ -294,6 +474,11 @@ function axisPosition(edge, endEdge, size, parentSize, padding) {
 
 function overlayX(horizontal, width, parentWidth, padding) {
   return axisPosition(horizontal, "right", width, parentWidth, padding)
+}
+
+// Place a child on the same edge as overlayX, inside a wider parent (padding 0).
+function alignX(horizontal, childWidth, parentWidth) {
+  return overlayX(horizontal, childWidth, parentWidth, 0)
 }
 
 function overlayY(vertical, height, parentHeight, padding) {
@@ -315,7 +500,12 @@ if (typeof module !== "undefined") {
     labelsForCodes: labelsForCodes,
     parseProtocol: parseProtocol,
     displayedAfterHeld: displayedAfterHeld,
+    comboFromLabels: comboFromLabels,
+    parseBinds: parseBinds,
+    actionForLabels: actionForLabels,
+    isCatalogChangeEvent: isCatalogChangeEvent,
     overlayX: overlayX,
+    alignX: alignX,
     overlayY: overlayY,
     overlayRadius: overlayRadius,
     clampScale: clampScale,

@@ -28,7 +28,9 @@
       "horizontal": "left",
       "padding": 24,
       "scale": 1,
-      "lingerMs": 600
+      "lingerMs": 600,
+      "actionEnabled": true,
+      "actionPosition": "below"
     },
     "schema": [
       {
@@ -96,6 +98,20 @@
         "max": 2000,
         "step": 50,
         "defaultValue": 600
+      },
+      {
+        "key": "actionEnabled",
+        "type": "boolean",
+        "label": "Show shortcut action",
+        "description": "Bind description from Hyprland, same source as Super+K",
+        "defaultValue": true
+      },
+      {
+        "key": "actionPosition",
+        "type": "enum",
+        "label": "Action placement",
+        "options": ["above", "below"],
+        "defaultValue": "below"
       }
     ]
   }

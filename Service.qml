@@ -20,8 +20,15 @@ Item {
   property int padding: 24
   property real scaleFactor: 1
   property int lingerMs: 600
+  property bool actionEnabled: true
+  property string actionPosition: "below"
+  property var bindCatalog: ({})
   property var heldKeys: []
   property var displayedKeys: []
+  readonly property string displayedAction: {
+    if (!actionEnabled) return ""
+    return Keys.actionForLabels(bindCatalog, displayedKeys)
+  }
   property bool bridgeInstalled: false
   property bool bridgeLive: false
   property bool bridgeBusy: false
@@ -55,6 +62,8 @@ Item {
     padding = next.padding
     scaleFactor = next.scale
     lingerMs = next.lingerMs
+    actionEnabled = next.actionEnabled
+    actionPosition = next.actionPosition
     lingerTimer.interval = Math.max(1, next.lingerMs)
     if (!overlayEnabled) {
       lingerTimer.stop()
@@ -75,7 +84,9 @@ Item {
       horizontal: horizontal,
       padding: padding,
       scale: scaleFactor,
-      lingerMs: lingerMs
+      lingerMs: lingerMs,
+      actionEnabled: actionEnabled,
+      actionPosition: actionPosition
     }
     for (var changed in changes) next[changed] = changes[changed]
     applySettings(next)
@@ -137,6 +148,18 @@ Item {
     return persistSettings({ lingerMs: next })
   }
 
+  function setActionEnabled(value) {
+    var next = Keys.normalizeSettings({ actionEnabled: value }).actionEnabled
+    if (next === actionEnabled) return false
+    return persistSettings({ actionEnabled: next })
+  }
+
+  function setActionPosition(value) {
+    var next = Keys.normalizeSettings({ actionPosition: value }).actionPosition
+    if (next === actionPosition) return false
+    return persistSettings({ actionPosition: next })
+  }
+
   function toggleOverlay() {
     return setOverlayEnabled(!overlayEnabled)
   }
@@ -171,9 +194,27 @@ Item {
   }
 
   function handleRawEvent(event) {
-    if (!event || String(event.name || "") !== "custom") return
-    var payload = String(event.data || "")
-    if (payload.indexOf("keycast:") === 0) handleProtocolEvent(payload)
+    if (!event) return
+    var name = String(event.name || "")
+    if (name === "custom") {
+      var payload = String(event.data || "")
+      if (payload.indexOf("keycast:") === 0) handleProtocolEvent(payload)
+      return
+    }
+    if (Keys.isCatalogChangeEvent(name)) refreshBinds()
+  }
+
+  function applyBinds(raw, exitCode) {
+    if (exitCode !== 0) return false
+    bindCatalog = Keys.parseBinds(String(raw || ""))
+    return true
+  }
+
+  function refreshBinds() {
+    if (bindsProcess.running) return false
+    bindsProcess.command = ["hyprctl", "binds"]
+    bindsProcess.running = true
+    return true
   }
 
   function applyInspectResult(raw, exitCode) {
@@ -258,6 +299,13 @@ Item {
   }
 
   Process {
+    id: bindsProcess
+    running: false
+    stdout: StdioCollector { id: bindsStdout; waitForEnd: true }
+    onExited: root.applyBinds(bindsStdout.text, exitCode)
+  }
+
+  Process {
     id: snippetProcess
     running: false
     stdout: StdioCollector { id: snippetStdout; waitForEnd: true }
@@ -281,6 +329,7 @@ Item {
   Component.onCompleted: Qt.callLater(function() {
     root.applySettings(root.settingsEntry())
     root.inspectBridge()
+    root.refreshBinds()
     snippetProcess.command = [root.controllerPath, "manual-snippet"]
     snippetProcess.running = true
   })

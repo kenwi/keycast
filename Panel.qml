@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import Quickshell
 import qs.Commons
 import qs.Ui
@@ -34,6 +35,7 @@ Panel {
 
   function open() {
     if (service && typeof service.inspectBridge === "function") service.inspectBridge()
+    if (scroll) scroll.contentY = 0
     controller.show()
   }
 
@@ -60,17 +62,28 @@ Panel {
     centerOnBar: false
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(380))
-    contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight)
+    contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight, Style.space(560))
 
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
       onCloseRequested: root.close()
 
-      Column {
-        id: contentColumn
-        width: parent.width
-        spacing: Style.space(12)
+      Flickable {
+        id: scroll
+        anchors.fill: parent
+        contentWidth: width
+        contentHeight: contentColumn.implicitHeight
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.VerticalFlick
+        interactive: contentHeight > height
+        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+        Column {
+          id: contentColumn
+          width: scroll.width
+          spacing: Style.space(12)
 
       Column {
         width: parent.width
@@ -256,6 +269,33 @@ Panel {
           onModified: function(value) { if (root.service) root.service.setLingerMs(value) }
         }
 
+        Toggle {
+          width: parent.width
+          label: "Show shortcut action"
+          description: "Hyprland bind description, same source as Super+K. Hidden when the chord has no description."
+          checked: root.service ? root.service.actionEnabled !== false : true
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          onClicked: if (root.service) root.service.setActionEnabled(!(root.service.actionEnabled !== false))
+        }
+
+        PanelSectionHeader {
+          text: "ACTION PLACEMENT"
+          foreground: root.fg
+          fontFamily: root.fontFamily
+        }
+        ButtonGroup {
+          width: parent.width
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          value: root.service ? root.service.actionPosition : "below"
+          options: [
+            { value: "above", label: "Above" },
+            { value: "below", label: "Below" }
+          ]
+          onChanged: function(value) { if (root.service) root.service.setActionPosition(value) }
+        }
+
         PanelSeparator { width: parent.width; strength: 0.09 }
 
         Button {
@@ -265,6 +305,7 @@ Panel {
           onClicked: if (root.service) root.service.disableBridge()
         }
       }
+        }
       }
     }
   }
