@@ -89,8 +89,8 @@ BarWidget {
     tooltipText: !root.bridgeReady
       ? "Keycast · right-click to install the Hyprland bridge"
       : root.overlayOn
-        ? "Keycast on · click to hide, right-click for position"
-        : "Keycast off · click to show pressed keys, right-click for position"
+        ? "Keycast on · click to disable, right-click for settings"
+        : "Keycast off · click to enable, right-click for settings"
     onPressed: function(buttonCode) { root.handlePress(buttonCode) }
   }
 }
