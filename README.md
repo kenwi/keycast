@@ -22,7 +22,7 @@ Hyprland bridge is installed or removed from this page.*
 ![Position settings](screenshots/settings-position.png)
 
 *Position page - vertical and horizontal edge (including middle), padding from
-the chosen edge, and overlay scale.*
+the chosen edge, and overlay scale (including a custom value).*
 
 ![Color settings](screenshots/settings-colors.png)
 
@@ -39,7 +39,7 @@ Editing a hex value switches to Custom.*
 - Configurable padding from the chosen edge (0-400 px, default 24; ignored on a middle axis)
 - Optional outer box around the keycaps
 - Optional corner rounding (0-32 px, default 8)
-- Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x`)
+- Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x` / custom 0.5-5)
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold) plus custom hex for background, border, and font
@@ -107,6 +107,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "horizontal": "left",
   "padding": 24,
   "scale": 1,
+  "scaleCustom": false,
   "lingerMs": 600,
   "actionEnabled": true,
   "previewEnabled": true,
@@ -127,7 +128,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `vertical` | `top` / `middle` / `bottom` | `bottom` |
 | `horizontal` | `left` / `middle` / `right` | `left` |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
-| `scale` | `1` / `1.25` / `1.5` / `1.75` / `2` | `1` |
+| `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
+| `scaleCustom` | `true` / `false` | `false` |
 | `lingerMs` | 0-2000 ms | `600` |
 | `actionEnabled` | `true` / `false` | `true` |
 | `previewEnabled` | `true` / `false` | `true` |
@@ -144,6 +146,8 @@ omarchy bar set local.keycast vertical middle
 omarchy bar set local.keycast horizontal middle
 omarchy bar set local.keycast padding 40
 omarchy bar set local.keycast scale 1.25
+omarchy bar set local.keycast scaleCustom true
+omarchy bar set local.keycast scale 1.4
 omarchy bar set local.keycast frameEnabled false
 omarchy bar set local.keycast roundingEnabled false
 omarchy bar set local.keycast rounding 12

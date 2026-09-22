@@ -82,7 +82,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: themeDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus
+      blocked: themeDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
       onCloseRequested: root.close()
 
       Flickable {
@@ -345,15 +345,28 @@ Panel {
                 width: parent.width
                 foreground: root.fg
                 fontFamily: root.fontFamily
-                value: root.service ? String(root.service.scaleFactor) : "1"
+                value: root.service ? root.service.scaleChoice : "1"
                 options: [
                   { value: "1", label: "1x" },
                   { value: "1.25", label: "1.25x" },
                   { value: "1.5", label: "1.5x" },
                   { value: "1.75", label: "1.75x" },
-                  { value: "2", label: "2x" }
+                  { value: "2", label: "2x" },
+                  { value: "custom", label: "Custom" }
                 ]
                 onChanged: function(value) { if (root.service) root.service.setScale(value) }
+              }
+              ScaleField {
+                id: scaleField
+                width: parent.width
+                visible: root.service && root.service.scaleCustom === true
+                label: "Custom scale"
+                value: root.service ? root.service.scaleFactor : 1
+                from: 0.5
+                to: 5
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onModified: function(value) { if (root.service) root.service.setCustomScale(value) }
               }
             }
 

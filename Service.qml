@@ -20,6 +20,8 @@ Item {
   property string horizontal: "left"
   property int padding: 24
   property real scaleFactor: 1
+  property bool scaleCustom: false
+  readonly property string scaleChoice: Keys.scaleChoice(scaleFactor, scaleCustom)
   property int lingerMs: 600
   property bool actionEnabled: true
   property bool previewEnabled: true
@@ -96,6 +98,7 @@ Item {
     horizontal = next.horizontal
     padding = next.padding
     scaleFactor = next.scale
+    scaleCustom = next.scaleCustom === true
     lingerMs = next.lingerMs
     actionEnabled = next.actionEnabled
     previewEnabled = next.previewEnabled
@@ -126,6 +129,7 @@ Item {
       horizontal: horizontal,
       padding: padding,
       scale: scaleFactor,
+      scaleCustom: scaleCustom,
       lingerMs: lingerMs,
       actionEnabled: actionEnabled,
       previewEnabled: previewEnabled,
@@ -184,9 +188,19 @@ Item {
   }
 
   function setScale(value) {
-    var next = Keys.normalizeSettings({ scale: value }).scale
-    if (next === scaleFactor) return false
-    return persistSettings({ scale: next })
+    if (String(value) === "custom") {
+      if (scaleCustom) return false
+      return persistSettings({ scaleCustom: true, scale: scaleFactor })
+    }
+    var next = Keys.clampScalePreset(value)
+    if (!scaleCustom && next === scaleFactor) return false
+    return persistSettings({ scaleCustom: false, scale: next })
+  }
+
+  function setCustomScale(value) {
+    var next = Keys.clampScale(value)
+    if (scaleCustom && next === scaleFactor) return false
+    return persistSettings({ scaleCustom: true, scale: next })
   }
 
   function setLingerMs(value) {

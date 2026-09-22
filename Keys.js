@@ -24,6 +24,9 @@ var COLOR_PRESETS = {
 var SCALE_MIN = 0.75
 var SCALE_MAX = 2
 var SCALE_STEP = 0.25
+var SCALE_CUSTOM_MIN = 0.5
+var SCALE_CUSTOM_MAX = 5
+var SCALE_PRESETS = [1, 1.25, 1.5, 1.75, 2]
 var MODIFIER_ORDER = ["Super", "Ctrl", "Alt", "Shift"]
 var COMBO_MOD_ORDER = ["SUPER", "CTRL", "ALT", "SHIFT"]
 var MODMASK_SUPER = 64
@@ -242,13 +245,44 @@ function clampInt(value, min, max, fallback) {
   return Math.max(min, Math.min(max, n))
 }
 
-function clampScale(value) {
+function clampScalePreset(value) {
   var n = Number(value)
   if (!isFinite(n)) return 1
   n = Math.round(n / SCALE_STEP) * SCALE_STEP
   if (n < SCALE_MIN) return SCALE_MIN
   if (n > SCALE_MAX) return SCALE_MAX
   return n
+}
+
+function clampScale(value) {
+  var n = Number(value)
+  if (!isFinite(n)) return 1
+  n = Math.round(n * 100) / 100
+  if (n < SCALE_CUSTOM_MIN) return SCALE_CUSTOM_MIN
+  if (n > SCALE_CUSTOM_MAX) return SCALE_CUSTOM_MAX
+  return n
+}
+
+function isScalePreset(value) {
+  var n = Number(value)
+  if (!isFinite(n)) return false
+  for (var i = 0; i < SCALE_PRESETS.length; i++) {
+    if (Math.abs(SCALE_PRESETS[i] - n) < 0.001) return true
+  }
+  return false
+}
+
+function scaleToken(value) {
+  var n = Number(value)
+  if (!isFinite(n)) return "1"
+  if (Math.abs(n - Math.round(n)) < 0.001) return String(Math.round(n))
+  return String(n)
+}
+
+function scaleChoice(scale, scaleCustom) {
+  if (scaleCustom === true) return "custom"
+  if (!isScalePreset(scale)) return "custom"
+  return scaleToken(scale)
 }
 
 function pickChoice(value, allowed, fallback) {
@@ -513,6 +547,15 @@ function settingsFromBar(barConfig, pluginId) {
 function normalizeSettings(entry) {
   var src = entry && typeof entry === "object" ? entry : {}
   var frameRaw = src.frameEnabled
+  var rawScale = Number(src.scale)
+  if (!isFinite(rawScale)) rawScale = 1
+  rawScale = Math.round(rawScale * 100) / 100
+  var customRaw = src.scaleCustom
+  var scaleCustom = customRaw === undefined || customRaw === null || customRaw === ""
+    ? !isScalePreset(rawScale)
+    : isEnabledFlag(customRaw)
+  var scale = scaleCustom ? clampScale(rawScale) : clampScalePreset(rawScale)
+  if (!scaleCustom && !isScalePreset(scale)) scaleCustom = true
   return {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
@@ -523,7 +566,8 @@ function normalizeSettings(entry) {
     vertical: pickChoice(src.vertical, VERTICALS, "bottom"),
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "left"),
     padding: clampInt(src.padding, 0, 400, 24),
-    scale: clampScale(src.scale),
+    scale: scale,
+    scaleCustom: scaleCustom,
     lingerMs: clampInt(src.lingerMs, 0, 2000, 600),
     actionEnabled: src.actionEnabled === undefined || src.actionEnabled === null || src.actionEnabled === ""
       ? true : isEnabledFlag(src.actionEnabled),
@@ -665,6 +709,9 @@ if (typeof module !== "undefined") {
     resolvedOverlayColors: resolvedOverlayColors,
     themeOptions: themeOptions,
     clampScale: clampScale,
+    clampScalePreset: clampScalePreset,
+    isScalePreset: isScalePreset,
+    scaleChoice: scaleChoice,
     normalizeSettings: normalizeSettings,
     settingsFromBar: settingsFromBar
   }

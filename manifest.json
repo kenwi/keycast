@@ -28,6 +28,7 @@
       "horizontal": "left",
       "padding": 24,
       "scale": 1,
+      "scaleCustom": false,
       "lingerMs": 600,
       "actionEnabled": true,
       "previewEnabled": true,
@@ -90,10 +91,16 @@
       },
       {
         "key": "scale",
-        "type": "enum",
+        "type": "string",
         "label": "Overlay scale",
-        "options": ["1", "1.25", "1.5", "1.75", "2"],
+        "description": "Preset 1 / 1.25 / 1.5 / 1.75 / 2, or 0.5-5 when custom",
         "defaultValue": "1"
+      },
+      {
+        "key": "scaleCustom",
+        "type": "boolean",
+        "label": "Custom overlay scale",
+        "defaultValue": false
       },
       {
         "key": "lingerMs",
