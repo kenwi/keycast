@@ -34,6 +34,7 @@ Item {
   readonly property color overlayBg: service ? service.overlayBackground : Color.background
   readonly property color overlayBorder: service ? service.overlayBorderTone : Color.popups.border
   readonly property color overlayFont: service ? service.overlayFontTone : Color.popups.text
+  readonly property string typeface: service ? String(service.overlayTypeface || Style.font.family) : Style.font.family
   readonly property int colorEpoch: service ? Number(service.colorEpoch || 0) : 0
 
   Variants {
@@ -96,6 +97,7 @@ Item {
             var _tick = root.colorEpoch
             return root.overlayFont
           }
+          typeface: root.typeface
           useShellColors: {
             var _tick = root.colorEpoch
             return root.useShellColors

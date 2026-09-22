@@ -16,6 +16,7 @@ Item {
   property color overlayBg: Color.background
   property color overlayBorder: Color.popups.border
   property color overlayFont: Color.popups.text
+  property string typeface: Style.font.family
   property bool useShellColors: true
 
   readonly property int actionCap: Style.space(360)
@@ -52,7 +53,7 @@ Item {
       id: actionMetrics
       visible: false
       text: root.actionText
-      font.family: Style.font.family
+      font.family: root.typeface
       font.pixelSize: Style.font.body
     }
 
@@ -66,7 +67,7 @@ Item {
       text: root.actionText
       color: root.overlayFont
       opacity: 0.88
-      font.family: Style.font.family
+      font.family: root.typeface
       font.pixelSize: Style.font.body
     }
 
@@ -99,7 +100,7 @@ Item {
               textFormat: Text.PlainText
               text: root.labels && root.labels.length > index ? String(root.labels[index] || "") : ""
               color: root.overlayFont
-              font.family: Style.font.family
+              font.family: root.typeface
               font.pixelSize: Style.font.title
               font.bold: true
             }
@@ -118,7 +119,7 @@ Item {
       text: root.actionText
       color: root.overlayFont
       opacity: 0.88
-      font.family: Style.font.family
+      font.family: root.typeface
       font.pixelSize: Style.font.body
     }
   }

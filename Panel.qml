@@ -21,6 +21,7 @@ Panel {
   readonly property bool bridgeReady: service && service.bridgeInstalled === true
   readonly property bool overlayOn: service && service.overlayEnabled === true
   readonly property bool previewSettingOn: service ? service.previewEnabled !== false : true
+  property var fontChoices: []
   readonly property string bridgeSummary: {
     if (!service) return "Service unavailable"
     if (service.bridgeBusy) return "Updating Hyprland configuration…"
@@ -41,7 +42,12 @@ Panel {
     service.setPreviewActive(opened === true)
   }
 
+  function refreshFontChoices() {
+    fontChoices = Keys.fontOptions(Qt.fontFamilies())
+  }
+
   function open() {
+    refreshFontChoices()
     if (service && typeof service.inspectBridge === "function") service.inspectBridge()
     if (scroll) scroll.contentY = 0
     controller.show()
@@ -58,8 +64,14 @@ Panel {
   onBarChanged: syncService()
   onOpenedChanged: syncPreview()
   onServiceChanged: syncPreview()
-  onSettingsPageChanged: if (scroll) scroll.contentY = 0
-  Component.onCompleted: syncService()
+  onSettingsPageChanged: {
+    if (scroll) scroll.contentY = 0
+    if (settingsPage === "overlay") refreshFontChoices()
+  }
+  Component.onCompleted: {
+    syncService()
+    refreshFontChoices()
+  }
 
   Timer {
     interval: 250
@@ -83,7 +95,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
+      blocked: fontDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
       onCloseRequested: root.close()
 
       Flickable {
@@ -234,6 +246,29 @@ Panel {
                 foreground: root.fg
                 fontFamily: root.fontFamily
                 onModified: function(value) { if (root.service) root.service.setRounding(value) }
+              }
+
+              FontDropdown {
+                id: fontDropdown
+                width: parent.width
+                label: "Font"
+                placeholderText: "Search fonts"
+                emptyText: "No matching fonts"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                value: root.service ? root.service.fontFamily : "shell"
+                options: root.fontChoices
+                onChanged: function(value) { if (root.service) root.service.setFontFamily(value) }
+              }
+              Text {
+                width: parent.width
+                textFormat: Text.PlainText
+                text: "Shell uses the Omarchy UI font. Other entries are fonts installed on this system."
+                color: root.fg
+                opacity: 0.78
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                wrapMode: Text.WordWrap
               }
 
               NumberField {

@@ -27,6 +27,8 @@ Item {
   property bool previewEnabled: true
   property string actionPosition: "below"
   property string colorTheme: "shell"
+  property string fontFamily: "shell"
+  readonly property string overlayTypeface: Keys.resolvedFontFamily(fontFamily, Style.font.family)
   property string backgroundColor: "#1A1A1A"
   property string borderColor: "#6E6E6E"
   property string fontColor: "#F5F5F5"
@@ -104,6 +106,7 @@ Item {
     previewEnabled = next.previewEnabled
     actionPosition = next.actionPosition
     colorTheme = next.colorTheme
+    fontFamily = next.fontFamily
     backgroundColor = next.backgroundColor
     borderColor = next.borderColor
     fontColor = next.fontColor
@@ -135,6 +138,7 @@ Item {
       previewEnabled: previewEnabled,
       actionPosition: actionPosition,
       colorTheme: colorTheme,
+      fontFamily: fontFamily,
       backgroundColor: backgroundColor,
       borderColor: borderColor,
       fontColor: fontColor
@@ -225,6 +229,12 @@ Item {
     var next = Keys.normalizeSettings({ actionPosition: value }).actionPosition
     if (next === actionPosition) return false
     return persistSettings({ actionPosition: next })
+  }
+
+  function setFontFamily(value) {
+    var next = Keys.normalizeFontFamily(value)
+    if (next === fontFamily) return false
+    return persistSettings({ fontFamily: next })
   }
 
   function setColorTheme(value) {

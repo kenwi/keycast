@@ -33,6 +33,7 @@
       "actionEnabled": true,
       "previewEnabled": true,
       "actionPosition": "below",
+      "fontFamily": "shell",
       "colorTheme": "shell",
       "backgroundColor": "#1A1A1A",
       "borderColor": "#6E6E6E",
@@ -131,6 +132,13 @@
         "label": "Action placement",
         "options": ["above", "below"],
         "defaultValue": "below"
+      },
+      {
+        "key": "fontFamily",
+        "type": "string",
+        "label": "Overlay font",
+        "description": "shell uses the Omarchy UI font, or any installed family",
+        "defaultValue": "shell"
       },
       {
         "key": "colorTheme",

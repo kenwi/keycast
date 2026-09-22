@@ -597,6 +597,7 @@ function normalizeSettings(entry) {
       ? true : isEnabledFlag(src.previewEnabled),
     actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below"),
     colorTheme: pickChoice(src.colorTheme, COLOR_THEMES, "shell"),
+    fontFamily: normalizeFontFamily(src.fontFamily),
     backgroundColor: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),
     borderColor: normalizeHex(src.borderColor, DEFAULT_HEX.border),
     fontColor: normalizeHex(src.fontColor, DEFAULT_HEX.font)
@@ -630,6 +631,45 @@ function overlayRadius(roundingEnabled, rounding) {
     ? true : isEnabledFlag(roundingEnabled)
   if (!enabled) return 0
   return clampInt(rounding, 0, 32, 8)
+}
+
+function normalizeFontFamily(value) {
+  var text = String(value === undefined || value === null ? "" : value).trim()
+  if (text === "" || text.toLowerCase() === "shell") return "shell"
+  return text
+}
+
+function resolvedFontFamily(setting, shellFamily) {
+  var name = normalizeFontFamily(setting)
+  if (name !== "shell") return name
+  var fb = String(shellFamily || "").trim()
+  return fb || "monospace"
+}
+
+function fontOptions(families) {
+  var seen = { shell: true }
+  var out = [{ value: "shell", label: "Shell" }]
+  var list = families || []
+  var names = []
+  for (var i = 0; i < list.length; i++) {
+    var name = String(list[i] || "").trim()
+    if (!name) continue
+    var key = name.toLowerCase()
+    if (seen[key]) continue
+    seen[key] = true
+    names.push(name)
+  }
+  names.sort(function(a, b) {
+    var left = a.toLowerCase()
+    var right = b.toLowerCase()
+    if (left < right) return -1
+    if (left > right) return 1
+    return 0
+  })
+  for (var j = 0; j < names.length; j++) {
+    out.push({ value: names[j], label: names[j] })
+  }
+  return out
 }
 
 function normalizeHex(value, fallback) {
@@ -721,6 +761,9 @@ if (typeof module !== "undefined") {
     alignX: alignX,
     overlayY: overlayY,
     overlayRadius: overlayRadius,
+    normalizeFontFamily: normalizeFontFamily,
+    resolvedFontFamily: resolvedFontFamily,
+    fontOptions: fontOptions,
     normalizeHex: normalizeHex,
     colorToHex: colorToHex,
     presetColors: presetColors,

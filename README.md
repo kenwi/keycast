@@ -15,9 +15,10 @@ shortcut. The box is click-through so it does not steal clicks in a recording.*
 ![Overlay settings](screenshots/settings-overlay.png)
 
 *Overlay page - right-click the bar icon. Turn the overlay on, optionally preview
-a sample hotkey while this panel is open, set outer box and rounding, linger
-after release, and place the shortcut action above or below the keys. The
-Hyprland bridge is installed or removed from this page.*
+a sample hotkey while this panel is open, set outer box, rounding, and a
+searchable system font, linger after release, and place the shortcut action
+above or below the keys. The Hyprland bridge is installed or removed from this
+page.*
 
 ![Position settings](screenshots/settings-position.png)
 
@@ -42,6 +43,7 @@ switches to Custom.*
 - Optional outer box around the keycaps
 - Optional corner rounding (0-32 px, default 8)
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x` / custom 0.5-5)
+- Overlay font: Shell (Omarchy UI font) or any family installed on the system
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold, Neon, Matrix, Vapor, Cyber, Ember, Ice) plus custom hex for background, border, and font
@@ -114,6 +116,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "actionEnabled": true,
   "previewEnabled": true,
   "actionPosition": "below",
+  "fontFamily": "shell",
   "colorTheme": "shell",
   "backgroundColor": "#1A1A1A",
   "borderColor": "#6E6E6E",
@@ -136,6 +139,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `actionEnabled` | `true` / `false` | `true` |
 | `previewEnabled` | `true` / `false` | `true` |
 | `actionPosition` | `above` / `below` | `below` |
+| `fontFamily` | `shell` or an installed family name | `shell` |
 | `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `neon` / `matrix` / `vapor` / `cyber` / `ember` / `ice` / `custom` | `shell` |
 | `backgroundColor` | `#RRGGBB` | `#1A1A1A` |
 | `borderColor` | `#RRGGBB` | `#6E6E6E` |
@@ -156,6 +160,7 @@ omarchy bar set local.keycast rounding 12
 omarchy bar set local.keycast actionEnabled true
 omarchy bar set local.keycast previewEnabled false
 omarchy bar set local.keycast actionPosition above
+omarchy bar set local.keycast fontFamily "JetBrainsMono Nerd Font"
 omarchy bar set local.keycast colorTheme mocha
 omarchy bar set local.keycast backgroundColor "#1A1A1A"
 omarchy bar set local.keycast borderColor "#6E6E6E"
