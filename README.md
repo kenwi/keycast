@@ -12,13 +12,21 @@ optional shortcut action label are configurable.
 underneath. Super+W shows Close window, the same text Super+K lists for that
 shortcut. The box is click-through so it does not steal clicks in a recording.*
 
-![Settings panel](screenshots/configuration.png)
+![Overlay settings](screenshots/settings-overlay.png)
 
-*Configuration - right-click the bar icon to open this panel. Turn the overlay
-on, choose outer box and rounding, place it on an edge or in the middle, set
-padding and scale, linger after release, and optionally show the shortcut
-action above or below the keys. The first-time Hyprland bridge install lives
-here too.*
+*Overlay page - right-click the bar icon. Turn the overlay on, set outer box
+and rounding, linger after release, and place the shortcut action above or
+below the keys. The Hyprland bridge is installed or removed from this page.*
+
+![Position settings](screenshots/settings-position.png)
+
+*Position page - vertical and horizontal edge (including middle), padding from
+the chosen edge, and overlay scale.*
+
+![Color settings](screenshots/settings-colors.png)
+
+*Colors page - Shell follows the Omarchy theme. Presets fill background, border,
+and font. Editing a hex value switches to Custom.*
 
 ## Features
 
@@ -155,7 +163,7 @@ omarchy-shell local.keycast toggle
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
 | `bridge.lua` | Hyprland `input.keyboard.key` observer |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
-| `screenshots/` | Overlay and settings panel images for this README |
+| `screenshots/` | Overlay and settings-page images for this README |
 | `README.md` | This file |
 
 ## Tests
