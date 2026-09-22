@@ -22,7 +22,8 @@ Hyprland bridge is installed or removed from this page.*
 ![Position settings](screenshots/settings-position.png)
 
 *Position page - vertical and horizontal edge (including middle), padding from
-the chosen edge, and overlay scale (including a custom value).*
+the chosen edge, and overlay scale. Custom sits on the same row as the presets
+and opens a spin field for 0.5-5.*
 
 ![Color settings](screenshots/settings-colors.png)
 
