@@ -14,11 +14,10 @@ shortcut. The box is click-through so it does not steal clicks in a recording.*
 
 ![Overlay settings](screenshots/settings-overlay.png)
 
-*Overlay page - right-click the bar icon. Turn the overlay on, set outer box
-and rounding, linger after release, and place the shortcut action above or
-below the keys. Optionally show a sample hotkey on the overlay while this
-panel is open so placement and look update immediately. The Hyprland bridge is
-installed or removed from this page.*
+*Overlay page - right-click the bar icon. Turn the overlay on, optionally preview
+a sample hotkey while this panel is open, set outer box and rounding, linger
+after release, and place the shortcut action above or below the keys. The
+Hyprland bridge is installed or removed from this page.*
 
 ![Position settings](screenshots/settings-position.png)
 
