@@ -7,7 +7,23 @@ var EMPTY_LABELS = []
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
 var ACTION_POSITIONS = ["above", "below"]
-var COLOR_THEMES = ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "custom"]
+var COLOR_THEMES = ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "neon", "matrix", "vapor", "cyber", "ember", "ice", "custom"]
+var THEME_LABELS = {
+  shell: "Shell",
+  dark: "Dark",
+  light: "Light",
+  contrast: "Contrast",
+  nord: "Nord",
+  mocha: "Mocha",
+  gold: "Gold",
+  neon: "Neon",
+  matrix: "Matrix",
+  vapor: "Vapor",
+  cyber: "Cyber",
+  ember: "Ember",
+  ice: "Ice",
+  custom: "Custom"
+}
 var DEFAULT_HEX = {
   background: "#1A1A1A",
   border: "#6E6E6E",
@@ -19,7 +35,13 @@ var COLOR_PRESETS = {
   contrast: { background: "#000000", border: "#FFFFFF", font: "#FFFFFF" },
   nord: { background: "#2E3440", border: "#88C0D0", font: "#ECEFF4" },
   mocha: { background: "#1E1E2E", border: "#CBA6F7", font: "#CDD6F4" },
-  gold: { background: "#1A1408", border: "#D4AF37", font: "#F8E7B0" }
+  gold: { background: "#1A1408", border: "#D4AF37", font: "#F8E7B0" },
+  neon: { background: "#0A0018", border: "#FF00AA", font: "#00FFFF" },
+  matrix: { background: "#020B05", border: "#00FF41", font: "#C8FFC8" },
+  vapor: { background: "#1B0B2E", border: "#FF71CE", font: "#01CDFE" },
+  cyber: { background: "#0C0C14", border: "#FCEE09", font: "#E8F4FF" },
+  ember: { background: "#140604", border: "#FF4D00", font: "#FFE4C8" },
+  ice: { background: "#031018", border: "#5CE1FF", font: "#EAFBFF" }
 }
 var SCALE_MIN = 0.75
 var SCALE_MAX = 2
@@ -672,16 +694,12 @@ function resolvedOverlayColors(settings) {
 }
 
 function themeOptions() {
-  return [
-    { value: "shell", label: "Shell" },
-    { value: "dark", label: "Dark" },
-    { value: "light", label: "Light" },
-    { value: "contrast", label: "Contrast" },
-    { value: "nord", label: "Nord" },
-    { value: "mocha", label: "Mocha" },
-    { value: "gold", label: "Gold" },
-    { value: "custom", label: "Custom" }
-  ]
+  var out = []
+  for (var i = 0; i < COLOR_THEMES.length; i++) {
+    var value = COLOR_THEMES[i]
+    out.push({ value: value, label: THEME_LABELS[value] || value })
+  }
+  return out
 }
 
 if (typeof module !== "undefined") {

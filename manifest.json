@@ -136,7 +136,7 @@
         "key": "colorTheme",
         "type": "enum",
         "label": "Color theme",
-        "options": ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "custom"],
+        "options": ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "neon", "matrix", "vapor", "cyber", "ember", "ice", "custom"],
         "defaultValue": "shell"
       },
       {

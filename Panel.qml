@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.Commons
 import qs.Ui
+import "Keys.js" as Keys
 
 Panel {
   id: root
@@ -82,7 +83,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
-      blocked: themeDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
+      blocked: bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
       onCloseRequested: root.close()
 
       Flickable {
@@ -375,24 +376,36 @@ Panel {
               width: parent.width
               spacing: Style.space(10)
 
-              Dropdown {
-                id: themeDropdown
+              Column {
                 width: parent.width
-                label: "Theme"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.colorTheme : "shell"
-                options: [
-                  { value: "shell", label: "Shell" },
-                  { value: "dark", label: "Dark" },
-                  { value: "light", label: "Light" },
-                  { value: "contrast", label: "Contrast" },
-                  { value: "nord", label: "Nord" },
-                  { value: "mocha", label: "Mocha" },
-                  { value: "gold", label: "Gold" },
-                  { value: "custom", label: "Custom" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setColorTheme(value) }
+                spacing: Style.spacing.md
+
+                Text {
+                  textFormat: Text.PlainText
+                  text: "Theme"
+                  color: Qt.darker(root.fg, 1.4)
+                  font.family: root.fontFamily
+                  font.pixelSize: Style.font.caption
+                  font.bold: true
+                }
+                Flow {
+                  width: parent.width
+                  spacing: Style.spacing.md
+
+                  Repeater {
+                    model: Keys.themeOptions()
+
+                    Button {
+                      required property var modelData
+                      text: modelData.label
+                      selected: root.service && root.service.colorTheme === String(modelData.value)
+                      bordered: true
+                      foreground: root.fg
+                      fontFamily: root.fontFamily
+                      onClicked: if (root.service) root.service.setColorTheme(modelData.value)
+                    }
+                  }
+                }
               }
               Text {
                 width: parent.width

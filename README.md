@@ -27,9 +27,10 @@ and opens a spin field for 0.5-5.*
 
 ![Color settings](screenshots/settings-colors.png)
 
-*Colors page - Shell follows the Omarchy theme and fills background, border,
-and font with the colors in use. Other presets fill those hex fields too.
-Editing a hex value switches to Custom.*
+*Colors page - every palette is a chip: Shell follows the Omarchy theme and
+fills background, border, and font with the colors in use. Neon, Matrix,
+Vapor, and the other presets fill those hex fields too. Editing a hex value
+switches to Custom.*
 
 ## Features
 
@@ -43,7 +44,7 @@ Editing a hex value switches to Custom.*
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x` / custom 0.5-5)
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
-- Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold) plus custom hex for background, border, and font
+- Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold, Neon, Matrix, Vapor, Cyber, Ember, Ice) plus custom hex for background, border, and font
 - Settings panel can show a live overlay preview of a random real hotkey while open
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
@@ -135,7 +136,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `actionEnabled` | `true` / `false` | `true` |
 | `previewEnabled` | `true` / `false` | `true` |
 | `actionPosition` | `above` / `below` | `below` |
-| `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `custom` | `shell` |
+| `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `neon` / `matrix` / `vapor` / `cyber` / `ember` / `ice` / `custom` | `shell` |
 | `backgroundColor` | `#RRGGBB` | `#1A1A1A` |
 | `borderColor` | `#RRGGBB` | `#6E6E6E` |
 | `fontColor` | `#RRGGBB` | `#F5F5F5` |
