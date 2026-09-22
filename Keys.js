@@ -6,6 +6,20 @@ var PROTOCOL_PREFIX = "keycast:v1:held:"
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
 var ACTION_POSITIONS = ["above", "below"]
+var COLOR_THEMES = ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "custom"]
+var DEFAULT_HEX = {
+  background: "#1A1A1A",
+  border: "#6E6E6E",
+  font: "#F5F5F5"
+}
+var COLOR_PRESETS = {
+  dark: { background: "#1A1A1A", border: "#6E6E6E", font: "#F5F5F5" },
+  light: { background: "#F4F4F5", border: "#A1A1AA", font: "#18181B" },
+  contrast: { background: "#000000", border: "#FFFFFF", font: "#FFFFFF" },
+  nord: { background: "#2E3440", border: "#88C0D0", font: "#ECEFF4" },
+  mocha: { background: "#1E1E2E", border: "#CBA6F7", font: "#CDD6F4" },
+  gold: { background: "#1A1408", border: "#D4AF37", font: "#F8E7B0" }
+}
 var SCALE_MIN = 0.75
 var SCALE_MAX = 2
 var SCALE_STEP = 0.25
@@ -459,7 +473,11 @@ function normalizeSettings(entry) {
     lingerMs: clampInt(src.lingerMs, 0, 2000, 600),
     actionEnabled: src.actionEnabled === undefined || src.actionEnabled === null || src.actionEnabled === ""
       ? true : isEnabledFlag(src.actionEnabled),
-    actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below")
+    actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below"),
+    colorTheme: pickChoice(src.colorTheme, COLOR_THEMES, "shell"),
+    backgroundColor: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),
+    borderColor: normalizeHex(src.borderColor, DEFAULT_HEX.border),
+    fontColor: normalizeHex(src.fontColor, DEFAULT_HEX.font)
   }
 }
 
@@ -492,6 +510,62 @@ function overlayRadius(roundingEnabled, rounding) {
   return clampInt(rounding, 0, 32, 8)
 }
 
+function normalizeHex(value, fallback) {
+  var fb = String(fallback || DEFAULT_HEX.background)
+  var text = String(value === undefined || value === null ? "" : value).trim()
+  if (text === "") return fb
+  if (text.charAt(0) !== "#") text = "#" + text
+  var shortMatch = text.match(/^#([0-9A-Fa-f]{3})$/)
+  if (shortMatch) {
+    var s = shortMatch[1].toUpperCase()
+    return "#" + s.charAt(0) + s.charAt(0) + s.charAt(1) + s.charAt(1) + s.charAt(2) + s.charAt(2)
+  }
+  var longMatch = text.match(/^#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/)
+  if (longMatch) return "#" + longMatch[1].toUpperCase()
+  return fb
+}
+
+function presetColors(theme) {
+  var key = String(theme || "")
+  return COLOR_PRESETS[key] || null
+}
+
+function resolvedOverlayColors(settings) {
+  var src = settings && typeof settings === "object" ? settings : {}
+  var theme = pickChoice(src.colorTheme, COLOR_THEMES, "shell")
+  if (theme === "shell") return { theme: "shell", source: "shell" }
+  var preset = presetColors(theme)
+  if (preset) {
+    return {
+      theme: theme,
+      source: "preset",
+      background: preset.background,
+      border: preset.border,
+      font: preset.font
+    }
+  }
+  return {
+    theme: "custom",
+    source: "custom",
+    background: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),
+    border: normalizeHex(src.borderColor, DEFAULT_HEX.border),
+    font: normalizeHex(src.fontColor, DEFAULT_HEX.font)
+  }
+}
+
+function themeOptions() {
+  return [
+    { value: "shell", label: "Shell" },
+    { value: "dark", label: "Dark" },
+    { value: "light", label: "Light" },
+    { value: "contrast", label: "Contrast" },
+    { value: "nord", label: "Nord" },
+    { value: "mocha", label: "Mocha" },
+    { value: "gold", label: "Gold" },
+    { value: "custom", label: "Custom" }
+  ]
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     XKB_OFFSET: XKB_OFFSET,
@@ -508,6 +582,10 @@ if (typeof module !== "undefined") {
     alignX: alignX,
     overlayY: overlayY,
     overlayRadius: overlayRadius,
+    normalizeHex: normalizeHex,
+    presetColors: presetColors,
+    resolvedOverlayColors: resolvedOverlayColors,
+    themeOptions: themeOptions,
     clampScale: clampScale,
     normalizeSettings: normalizeSettings,
     settingsFromBar: settingsFromBar

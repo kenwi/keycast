@@ -3,8 +3,8 @@
 On-screen overlay of currently pressed keys, for screen recordings.
 
 The overlay is a click-through box of keycaps. It defaults to the lower-left
-corner. Position, padding, scale, outer box, corner rounding, and an optional
-shortcut action label are configurable.
+corner. Position, padding, scale, outer box, corner rounding, colors, and an
+optional shortcut action label are configurable.
 
 ![Key overlay](screenshots/overlay.png)
 
@@ -32,6 +32,7 @@ here too.*
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x`)
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
+- Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold) plus custom hex for background, border, and font
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for position, look, and the Hyprland bridge
@@ -97,7 +98,11 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "scale": 1,
   "lingerMs": 600,
   "actionEnabled": true,
-  "actionPosition": "below"
+  "actionPosition": "below",
+  "colorTheme": "shell",
+  "backgroundColor": "#1A1A1A",
+  "borderColor": "#6E6E6E",
+  "fontColor": "#F5F5F5"
 }
 ```
 
@@ -114,6 +119,10 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `lingerMs` | 0-2000 ms | `600` |
 | `actionEnabled` | `true` / `false` | `true` |
 | `actionPosition` | `above` / `below` | `below` |
+| `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `custom` | `shell` |
+| `backgroundColor` | `#RRGGBB` | `#1A1A1A` |
+| `borderColor` | `#RRGGBB` | `#6E6E6E` |
+| `fontColor` | `#RRGGBB` | `#F5F5F5` |
 
 CLI examples:
 
@@ -127,6 +136,10 @@ omarchy bar set local.keycast roundingEnabled false
 omarchy bar set local.keycast rounding 12
 omarchy bar set local.keycast actionEnabled true
 omarchy bar set local.keycast actionPosition above
+omarchy bar set local.keycast colorTheme mocha
+omarchy bar set local.keycast backgroundColor "#1A1A1A"
+omarchy bar set local.keycast borderColor "#6E6E6E"
+omarchy bar set local.keycast fontColor "#F5F5F5"
 omarchy-shell local.keycast toggle
 ```
 
@@ -138,7 +151,7 @@ omarchy-shell local.keycast toggle
 | `Service.qml` | Bridge events, overlay state, IPC, settings |
 | `Overlay.qml` | Click-through corner box on every monitor |
 | `BarWidget.qml` | Toggle + settings panel host |
-| `Panel.qml` | Bridge setup, position, look, linger, action label |
+| `Panel.qml` | Bridge setup, position, look, colors, linger, action label |
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
 | `bridge.lua` | Hyprland `input.keyboard.key` observer |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |

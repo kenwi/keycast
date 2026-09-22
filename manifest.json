@@ -30,7 +30,11 @@
       "scale": 1,
       "lingerMs": 600,
       "actionEnabled": true,
-      "actionPosition": "below"
+      "actionPosition": "below",
+      "colorTheme": "shell",
+      "backgroundColor": "#1A1A1A",
+      "borderColor": "#6E6E6E",
+      "fontColor": "#F5F5F5"
     },
     "schema": [
       {
@@ -112,6 +116,31 @@
         "label": "Action placement",
         "options": ["above", "below"],
         "defaultValue": "below"
+      },
+      {
+        "key": "colorTheme",
+        "type": "enum",
+        "label": "Color theme",
+        "options": ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "custom"],
+        "defaultValue": "shell"
+      },
+      {
+        "key": "backgroundColor",
+        "type": "string",
+        "label": "Background color",
+        "defaultValue": "#1A1A1A"
+      },
+      {
+        "key": "borderColor",
+        "type": "string",
+        "label": "Border color",
+        "defaultValue": "#6E6E6E"
+      },
+      {
+        "key": "fontColor",
+        "type": "string",
+        "label": "Font color",
+        "defaultValue": "#F5F5F5"
       }
     ]
   }

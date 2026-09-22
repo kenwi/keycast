@@ -139,4 +139,23 @@ assert(Keys.normalizeSettings({}).actionPosition === "below", "action below defa
 assert(Keys.normalizeSettings({ actionEnabled: false, actionPosition: "ABOVE" }).actionEnabled === false, "action off")
 assert(Keys.normalizeSettings({ actionEnabled: false, actionPosition: "ABOVE" }).actionPosition === "above", "action above")
 
+assert(Keys.normalizeHex("#abc") === "#AABBCC", "short hex")
+assert(Keys.normalizeHex("1a1a1a") === "#1A1A1A", "hex without hash")
+assert(Keys.normalizeHex("#1a1a1aff") === "#1A1A1A", "hex with alpha")
+assert(Keys.normalizeHex("nope", "#111111") === "#111111", "bad hex fallback")
+assert(Keys.normalizeSettings({}).colorTheme === "shell", "theme default shell")
+assert(Keys.normalizeSettings({ colorTheme: "NORD" }).colorTheme === "nord", "theme nord")
+assert(Keys.resolvedOverlayColors({ colorTheme: "shell" }).source === "shell", "shell source")
+assert(Keys.resolvedOverlayColors({ colorTheme: "mocha" }).background === "#1E1E2E", "mocha bg")
+assert(Keys.resolvedOverlayColors({ colorTheme: "mocha" }).font === "#CDD6F4", "mocha font")
+assert(Keys.resolvedOverlayColors({
+  colorTheme: "custom",
+  backgroundColor: "#112233",
+  borderColor: "#445566",
+  fontColor: "#778899"
+}).background === "#112233", "custom bg")
+assert(Keys.presetColors("dark").border === "#6E6E6E", "dark preset")
+assert(Keys.resolvedOverlayColors({ colorTheme: "gold" }).border === "#D4AF37", "gold border")
+assert(Keys.themeOptions().length === 8, "theme option count")
+
 console.log("keys ok")

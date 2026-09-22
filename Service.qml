@@ -22,6 +22,10 @@ Item {
   property int lingerMs: 600
   property bool actionEnabled: true
   property string actionPosition: "below"
+  property string colorTheme: "shell"
+  property string backgroundColor: "#1A1A1A"
+  property string borderColor: "#6E6E6E"
+  property string fontColor: "#F5F5F5"
   property var bindCatalog: ({})
   property var heldKeys: []
   property var displayedKeys: []
@@ -64,6 +68,10 @@ Item {
     lingerMs = next.lingerMs
     actionEnabled = next.actionEnabled
     actionPosition = next.actionPosition
+    colorTheme = next.colorTheme
+    backgroundColor = next.backgroundColor
+    borderColor = next.borderColor
+    fontColor = next.fontColor
     lingerTimer.interval = Math.max(1, next.lingerMs)
     if (!overlayEnabled) {
       lingerTimer.stop()
@@ -86,7 +94,11 @@ Item {
       scale: scaleFactor,
       lingerMs: lingerMs,
       actionEnabled: actionEnabled,
-      actionPosition: actionPosition
+      actionPosition: actionPosition,
+      colorTheme: colorTheme,
+      backgroundColor: backgroundColor,
+      borderColor: borderColor,
+      fontColor: fontColor
     }
     for (var changed in changes) next[changed] = changes[changed]
     applySettings(next)
@@ -158,6 +170,39 @@ Item {
     var next = Keys.normalizeSettings({ actionPosition: value }).actionPosition
     if (next === actionPosition) return false
     return persistSettings({ actionPosition: next })
+  }
+
+  function setColorTheme(value) {
+    var theme = Keys.normalizeSettings({ colorTheme: value }).colorTheme
+    var preset = Keys.presetColors(theme)
+    if (preset) {
+      return persistSettings({
+        colorTheme: theme,
+        backgroundColor: preset.background,
+        borderColor: preset.border,
+        fontColor: preset.font
+      })
+    }
+    if (theme === colorTheme) return false
+    return persistSettings({ colorTheme: theme })
+  }
+
+  function setBackgroundColor(value) {
+    var next = Keys.normalizeHex(value, backgroundColor)
+    if (colorTheme === "custom" && next === backgroundColor) return false
+    return persistSettings({ colorTheme: "custom", backgroundColor: next })
+  }
+
+  function setBorderColor(value) {
+    var next = Keys.normalizeHex(value, borderColor)
+    if (colorTheme === "custom" && next === borderColor) return false
+    return persistSettings({ colorTheme: "custom", borderColor: next })
+  }
+
+  function setFontColor(value) {
+    var next = Keys.normalizeHex(value, fontColor)
+    if (colorTheme === "custom" && next === fontColor) return false
+    return persistSettings({ colorTheme: "custom", fontColor: next })
   }
 
   function toggleOverlay() {

@@ -67,6 +67,7 @@ Panel {
     PanelKeyCatcher {
       id: keyCatcher
       anchors.fill: parent
+      blocked: themeDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus
       onCloseRequested: root.close()
 
       Flickable {
@@ -185,6 +186,160 @@ Panel {
           foreground: root.fg
           fontFamily: root.fontFamily
           onModified: function(value) { if (root.service) root.service.setRounding(value) }
+        }
+
+        PanelSeparator { width: parent.width; strength: 0.09 }
+
+        PanelSectionHeader {
+          text: "COLORS"
+          foreground: root.fg
+          fontFamily: root.fontFamily
+        }
+        Dropdown {
+          id: themeDropdown
+          width: parent.width
+          label: "Theme"
+          foreground: root.fg
+          fontFamily: root.fontFamily
+          value: root.service ? root.service.colorTheme : "shell"
+          options: [
+            { value: "shell", label: "Shell" },
+            { value: "dark", label: "Dark" },
+            { value: "light", label: "Light" },
+            { value: "contrast", label: "Contrast" },
+            { value: "nord", label: "Nord" },
+            { value: "mocha", label: "Mocha" },
+            { value: "gold", label: "Gold" },
+            { value: "custom", label: "Custom" }
+          ]
+          onChanged: function(value) { if (root.service) root.service.setColorTheme(value) }
+        }
+        Text {
+          width: parent.width
+          textFormat: Text.PlainText
+          text: "Shell follows the Omarchy theme. Presets fill the hex fields. Editing a hex switches to Custom."
+          color: root.fg
+          opacity: 0.78
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.caption
+          wrapMode: Text.WordWrap
+        }
+
+        Column {
+          width: parent.width
+          spacing: Style.space(4)
+
+          Text {
+            textFormat: Text.PlainText
+            text: "Background"
+            color: Qt.darker(root.fg, 1.4)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
+          }
+          Row {
+            width: parent.width
+            spacing: Style.space(8)
+            Rectangle {
+              width: Style.space(28)
+              height: Style.space(28)
+              radius: Style.cornerRadius
+              color: Style.colorFromHex(root.service ? root.service.backgroundColor : "#1A1A1A", Color.background)
+              border.color: root.fg
+              border.width: 1
+            }
+            TextField {
+              id: bgHex
+              width: parent.width - Style.space(36)
+              foreground: root.fg
+              font.family: root.fontFamily
+              onEditingFinished: if (root.service) root.service.setBackgroundColor(text)
+              onAccepted: if (root.service) root.service.setBackgroundColor(text)
+            }
+            Binding {
+              target: bgHex
+              property: "text"
+              value: root.service ? root.service.backgroundColor : "#1A1A1A"
+              when: !bgHex.activeFocus
+            }
+          }
+        }
+
+        Column {
+          width: parent.width
+          spacing: Style.space(4)
+
+          Text {
+            textFormat: Text.PlainText
+            text: "Border"
+            color: Qt.darker(root.fg, 1.4)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
+          }
+          Row {
+            width: parent.width
+            spacing: Style.space(8)
+            Rectangle {
+              width: Style.space(28)
+              height: Style.space(28)
+              radius: Style.cornerRadius
+              color: Style.colorFromHex(root.service ? root.service.borderColor : "#6E6E6E", Color.popups.border)
+              border.color: root.fg
+              border.width: 1
+            }
+            TextField {
+              id: borderHex
+              width: parent.width - Style.space(36)
+              foreground: root.fg
+              font.family: root.fontFamily
+              onEditingFinished: if (root.service) root.service.setBorderColor(text)
+              onAccepted: if (root.service) root.service.setBorderColor(text)
+            }
+            Binding {
+              target: borderHex
+              property: "text"
+              value: root.service ? root.service.borderColor : "#6E6E6E"
+              when: !borderHex.activeFocus
+            }
+          }
+        }
+
+        Column {
+          width: parent.width
+          spacing: Style.space(4)
+
+          Text {
+            textFormat: Text.PlainText
+            text: "Font"
+            color: Qt.darker(root.fg, 1.4)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
+          }
+          Row {
+            width: parent.width
+            spacing: Style.space(8)
+            Rectangle {
+              width: Style.space(28)
+              height: Style.space(28)
+              radius: Style.cornerRadius
+              color: Style.colorFromHex(root.service ? root.service.fontColor : "#F5F5F5", Color.popups.text)
+              border.color: root.fg
+              border.width: 1
+            }
+            TextField {
+              id: fontHex
+              width: parent.width - Style.space(36)
+              foreground: root.fg
+              font.family: root.fontFamily
+              onEditingFinished: if (root.service) root.service.setFontColor(text)
+              onAccepted: if (root.service) root.service.setFontColor(text)
+            }
+            Binding {
+              target: fontHex
+              property: "text"
+              value: root.service ? root.service.fontColor : "#F5F5F5"
+              when: !fontHex.activeFocus
+            }
+          }
         }
 
         PanelSeparator { width: parent.width; strength: 0.09 }

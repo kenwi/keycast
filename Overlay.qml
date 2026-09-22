@@ -32,6 +32,16 @@ Item {
     if (horizontal === "middle") return Text.AlignHCenter
     return Text.AlignLeft
   }
+  readonly property bool useShellColors: !service || String(service.colorTheme || "shell") === "shell"
+  readonly property color overlayBg: useShellColors
+    ? Color.background
+    : Style.colorFromHex(service.backgroundColor, Color.background)
+  readonly property color overlayBorder: useShellColors
+    ? Color.popups.border
+    : Style.colorFromHex(service.borderColor, Color.popups.border)
+  readonly property color overlayFont: useShellColors
+    ? Color.popups.text
+    : Style.colorFromHex(service.fontColor, Color.popups.text)
 
   Variants {
     model: Quickshell.screens
@@ -84,8 +94,10 @@ Item {
           BorderSurface {
             anchors.fill: parent
             visible: root.frameOn
-            color: Util.alpha(Color.background, 0.94)
-            borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
+            color: Util.alpha(root.overlayBg, 0.94)
+            borderSpec: root.useShellColors
+              ? Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
+              : Border.flat(root.overlayBorder, Math.max(1, Style.space(2)))
             radius: root.cornerPx
           }
 
@@ -113,7 +125,7 @@ Item {
               wrapMode: Text.NoWrap
               elide: Text.ElideRight
               text: root.actionText
-              color: Color.popups.text
+              color: root.overlayFont
               opacity: 0.88
               font.family: Style.font.family
               font.pixelSize: Style.font.body
@@ -138,9 +150,11 @@ Item {
                     implicitWidth: Math.max(Style.space(32), keyLabel.implicitWidth + Style.space(14))
                     implicitHeight: Style.space(34)
                     color: root.frameOn
-                      ? Util.alpha(Color.popups.text, 0.10)
-                      : Util.alpha(Color.background, 0.94)
-                    borderSpec: Border.flat(Util.alpha(Color.popups.text, root.frameOn ? 0.22 : 0.35), 1)
+                      ? Util.alpha(root.overlayFont, 0.10)
+                      : Util.alpha(root.overlayBg, 0.94)
+                    borderSpec: Border.flat(root.useShellColors
+                      ? Util.alpha(root.overlayFont, root.frameOn ? 0.22 : 0.35)
+                      : Util.alpha(root.overlayBorder, root.frameOn ? 0.85 : 1), 1)
                     radius: root.cornerPx
 
                     Text {
@@ -148,7 +162,7 @@ Item {
                       anchors.centerIn: parent
                       textFormat: Text.PlainText
                       text: String(keyCap.modelData || "")
-                      color: Color.popups.text
+                      color: root.overlayFont
                       font.family: Style.font.family
                       font.pixelSize: Style.font.title
                       font.bold: true
@@ -167,7 +181,7 @@ Item {
               wrapMode: Text.NoWrap
               elide: Text.ElideRight
               text: root.actionText
-              color: Color.popups.text
+              color: root.overlayFont
               opacity: 0.88
               font.family: Style.font.family
               font.pixelSize: Style.font.body
