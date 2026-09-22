@@ -67,7 +67,8 @@ Keycast is an on-screen display for recordings, not a logger.
 ## Install
 
 ```bash
-ln -s ~/Work/omarchy-plugins/local.keycast ~/.config/omarchy/plugins/local.keycast
+git clone https://github.com/kenwi/keycast.git ~/Work/keycast
+ln -s ~/Work/keycast ~/.config/omarchy/plugins/local.keycast
 omarchy plugin enable local.keycast
 ```
 
