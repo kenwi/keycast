@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
+import qs.Commons
 import "Keys.js" as Keys
 
 Item {
@@ -21,17 +22,43 @@ Item {
   property real scaleFactor: 1
   property int lingerMs: 600
   property bool actionEnabled: true
+  property bool previewEnabled: true
   property string actionPosition: "below"
   property string colorTheme: "shell"
   property string backgroundColor: "#1A1A1A"
   property string borderColor: "#6E6E6E"
   property string fontColor: "#F5F5F5"
+  readonly property bool useShellColors: colorTheme === "shell"
+  readonly property string displayBackgroundColor: useShellColors
+    ? Keys.colorToHex(Color.background, backgroundColor) : backgroundColor
+  readonly property string displayBorderColor: useShellColors
+    ? Keys.colorToHex(Color.popups.border, borderColor) : borderColor
+  readonly property string displayFontColor: useShellColors
+    ? Keys.colorToHex(Color.popups.text, fontColor) : fontColor
+  readonly property color overlayBackground: useShellColors
+    ? Color.background
+    : Style.colorFromHex(backgroundColor, Color.background)
+  readonly property color overlayBorderTone: useShellColors
+    ? Color.popups.border
+    : Style.colorFromHex(borderColor, Color.popups.border)
+  readonly property color overlayFontTone: useShellColors
+    ? Color.popups.text
+    : Style.colorFromHex(fontColor, Color.popups.text)
+  property int colorEpoch: 0
   property var bindCatalog: ({})
   property var heldKeys: []
   property var displayedKeys: []
+  property bool previewActive: false
+  property var previewKeys: []
+  property string previewAction: ""
+  property int previewEpoch: 0
+  readonly property var overlayLabels: Keys.overlayLabels(displayedKeys, previewActive, previewKeys)
   readonly property string displayedAction: {
     if (!actionEnabled) return ""
-    return Keys.actionForLabels(bindCatalog, displayedKeys)
+    if (displayedKeys && displayedKeys.length > 0)
+      return Keys.actionForLabels(bindCatalog, displayedKeys)
+    if (previewActive) return previewAction
+    return ""
   }
   property bool bridgeInstalled: false
   property bool bridgeLive: false
@@ -57,6 +84,10 @@ Item {
 
   function applySettings(entry) {
     var next = Keys.normalizeSettings(entry)
+    var colorsChanged = colorTheme !== next.colorTheme
+      || backgroundColor !== next.backgroundColor
+      || borderColor !== next.borderColor
+      || fontColor !== next.fontColor
     overlayEnabled = next.overlayEnabled
     frameEnabled = next.frameEnabled
     roundingEnabled = next.roundingEnabled
@@ -67,12 +98,15 @@ Item {
     scaleFactor = next.scale
     lingerMs = next.lingerMs
     actionEnabled = next.actionEnabled
+    previewEnabled = next.previewEnabled
     actionPosition = next.actionPosition
     colorTheme = next.colorTheme
     backgroundColor = next.backgroundColor
     borderColor = next.borderColor
     fontColor = next.fontColor
+    if (colorsChanged) colorEpoch += 1
     lingerTimer.interval = Math.max(1, next.lingerMs)
+    if (!previewEnabled && previewActive) setPreviewActive(false)
     if (!overlayEnabled) {
       lingerTimer.stop()
       displayedKeys = []
@@ -94,6 +128,7 @@ Item {
       scale: scaleFactor,
       lingerMs: lingerMs,
       actionEnabled: actionEnabled,
+      previewEnabled: previewEnabled,
       actionPosition: actionPosition,
       colorTheme: colorTheme,
       backgroundColor: backgroundColor,
@@ -166,6 +201,12 @@ Item {
     return persistSettings({ actionEnabled: next })
   }
 
+  function setPreviewEnabled(value) {
+    var next = Keys.normalizeSettings({ previewEnabled: value }).previewEnabled
+    if (next === previewEnabled) return false
+    return persistSettings({ previewEnabled: next })
+  }
+
   function setActionPosition(value) {
     var next = Keys.normalizeSettings({ actionPosition: value }).actionPosition
     if (next === actionPosition) return false
@@ -183,24 +224,35 @@ Item {
         fontColor: preset.font
       })
     }
+    if (theme === "shell") {
+      return persistSettings({
+        colorTheme: "shell",
+        backgroundColor: Keys.colorToHex(Color.background, backgroundColor),
+        borderColor: Keys.colorToHex(Color.popups.border, borderColor),
+        fontColor: Keys.colorToHex(Color.popups.text, fontColor)
+      })
+    }
     if (theme === colorTheme) return false
     return persistSettings({ colorTheme: theme })
   }
 
   function setBackgroundColor(value) {
-    var next = Keys.normalizeHex(value, backgroundColor)
+    var next = Keys.normalizeHex(value, displayBackgroundColor)
+    if (next === displayBackgroundColor && colorTheme !== "custom") return false
     if (colorTheme === "custom" && next === backgroundColor) return false
     return persistSettings({ colorTheme: "custom", backgroundColor: next })
   }
 
   function setBorderColor(value) {
-    var next = Keys.normalizeHex(value, borderColor)
+    var next = Keys.normalizeHex(value, displayBorderColor)
+    if (next === displayBorderColor && colorTheme !== "custom") return false
     if (colorTheme === "custom" && next === borderColor) return false
     return persistSettings({ colorTheme: "custom", borderColor: next })
   }
 
   function setFontColor(value) {
-    var next = Keys.normalizeHex(value, fontColor)
+    var next = Keys.normalizeHex(value, displayFontColor)
+    if (next === displayFontColor && colorTheme !== "custom") return false
     if (colorTheme === "custom" && next === fontColor) return false
     return persistSettings({ colorTheme: "custom", fontColor: next })
   }
@@ -209,10 +261,36 @@ Item {
     return setOverlayEnabled(!overlayEnabled)
   }
 
+  function pickPreview() {
+    var picked = Keys.randomPreview(bindCatalog)
+    previewKeys = picked.labels
+    previewAction = picked.action
+    previewEpoch += 1
+  }
+
+  function setPreviewActive(value) {
+    var next = value === true && previewEnabled
+    if (next === previewActive) {
+      if (next && (!previewKeys || previewKeys.length === 0)) pickPreview()
+      return next
+    }
+    previewActive = next
+    if (next) pickPreview()
+    else {
+      previewKeys = []
+      previewAction = ""
+      if (!overlayEnabled) {
+        lingerTimer.stop()
+        displayedKeys = []
+      }
+    }
+    return next
+  }
+
   function applyHeldLabels(labels) {
     var nextDisplay = Keys.displayedAfterHeld(heldKeys, labels, displayedKeys)
     heldKeys = labels
-    if (!overlayEnabled) {
+    if (!overlayEnabled && !previewActive) {
       lingerTimer.stop()
       displayedKeys = []
       return
@@ -252,6 +330,7 @@ Item {
   function applyBinds(raw, exitCode) {
     if (exitCode !== 0) return false
     bindCatalog = Keys.parseBinds(String(raw || ""))
+    if (previewActive && (!previewKeys || previewKeys.length === 0)) pickPreview()
     return true
   }
 

@@ -19,6 +19,7 @@ Panel {
   readonly property string fontFamily: bar ? bar.fontFamily : Style.font.family
   readonly property bool bridgeReady: service && service.bridgeInstalled === true
   readonly property bool overlayOn: service && service.overlayEnabled === true
+  readonly property bool previewSettingOn: service ? service.previewEnabled !== false : true
   readonly property string bridgeSummary: {
     if (!service) return "Service unavailable"
     if (service.bridgeBusy) return "Updating Hyprland configuration…"
@@ -31,19 +32,31 @@ Panel {
   function syncService() {
     service = bar && bar.shell && typeof bar.shell.serviceFor === "function"
       ? bar.shell.serviceFor(moduleName) : null
+    syncPreview()
+  }
+
+  function syncPreview() {
+    if (!service) return
+    service.setPreviewActive(opened === true)
   }
 
   function open() {
     if (service && typeof service.inspectBridge === "function") service.inspectBridge()
     if (scroll) scroll.contentY = 0
     controller.show()
+    syncPreview()
   }
 
-  function close() { controller.hide() }
+  function close() {
+    controller.hide()
+    syncPreview()
+  }
   function toggle() { if (opened) close(); else open() }
   function closeForPopoutSwitch() { close() }
 
   onBarChanged: syncService()
+  onOpenedChanged: syncPreview()
+  onServiceChanged: syncPreview()
   onSettingsPageChanged: if (scroll) scroll.contentY = 0
   Component.onCompleted: syncService()
 
@@ -175,6 +188,20 @@ Panel {
                 foreground: root.fg
                 fontFamily: root.fontFamily
                 onClicked: if (root.service) root.service.setOverlayEnabled(!root.overlayOn)
+              }
+
+              Toggle {
+                width: parent.width
+                label: "Preview keypress"
+                description: "Show a sample hotkey on the overlay while this panel is open."
+                checked: root.previewSettingOn
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: {
+                  if (!root.service) return
+                  root.service.setPreviewEnabled(!root.previewSettingOn)
+                  root.syncPreview()
+                }
               }
 
               Toggle {
@@ -357,7 +384,7 @@ Panel {
               Text {
                 width: parent.width
                 textFormat: Text.PlainText
-                text: "Shell follows the Omarchy theme. Presets fill the hex fields. Editing a hex switches to Custom."
+                text: "Shell follows the Omarchy theme and fills the hex fields with those colors. Presets fill the hex fields. Editing a hex switches to Custom."
                 color: root.fg
                 opacity: 0.78
                 font.family: root.fontFamily
@@ -383,7 +410,7 @@ Panel {
                     width: Style.space(28)
                     height: Style.space(28)
                     radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.backgroundColor : "#1A1A1A", Color.background)
+                    color: Style.colorFromHex(root.service ? root.service.displayBackgroundColor : "#1A1A1A", Color.background)
                     border.color: root.fg
                     border.width: 1
                   }
@@ -398,7 +425,7 @@ Panel {
                   Binding {
                     target: bgHex
                     property: "text"
-                    value: root.service ? root.service.backgroundColor : "#1A1A1A"
+                    value: root.service ? root.service.displayBackgroundColor : "#1A1A1A"
                     when: !bgHex.activeFocus
                   }
                 }
@@ -422,7 +449,7 @@ Panel {
                     width: Style.space(28)
                     height: Style.space(28)
                     radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.borderColor : "#6E6E6E", Color.popups.border)
+                    color: Style.colorFromHex(root.service ? root.service.displayBorderColor : "#6E6E6E", Color.popups.border)
                     border.color: root.fg
                     border.width: 1
                   }
@@ -437,7 +464,7 @@ Panel {
                   Binding {
                     target: borderHex
                     property: "text"
-                    value: root.service ? root.service.borderColor : "#6E6E6E"
+                    value: root.service ? root.service.displayBorderColor : "#6E6E6E"
                     when: !borderHex.activeFocus
                   }
                 }
@@ -461,7 +488,7 @@ Panel {
                     width: Style.space(28)
                     height: Style.space(28)
                     radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.fontColor : "#F5F5F5", Color.popups.text)
+                    color: Style.colorFromHex(root.service ? root.service.displayFontColor : "#F5F5F5", Color.popups.text)
                     border.color: root.fg
                     border.width: 1
                   }
@@ -476,7 +503,7 @@ Panel {
                   Binding {
                     target: fontHex
                     property: "text"
-                    value: root.service ? root.service.fontColor : "#F5F5F5"
+                    value: root.service ? root.service.displayFontColor : "#F5F5F5"
                     when: !fontHex.activeFocus
                   }
                 }

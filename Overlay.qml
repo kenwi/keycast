@@ -8,12 +8,18 @@ import "Keys.js" as Keys
 Item {
   id: root
 
-  property var service: null
+  property Item service: null
 
   readonly property bool overlayOn: service ? service.overlayEnabled === true : false
+  readonly property bool previewOn: service ? service.previewActive === true : false
   readonly property bool frameOn: service ? service.frameEnabled !== false : true
-  readonly property var labels: service && Array.isArray(service.displayedKeys) ? service.displayedKeys : []
-  readonly property bool showing: overlayOn && labels.length > 0
+  readonly property int previewEpoch: service ? Number(service.previewEpoch || 0) : 0
+  readonly property var labels: {
+    var _epoch = root.previewEpoch
+    if (!service) return []
+    return Keys.overlayLabels(service.displayedKeys, service.previewActive, service.previewKeys)
+  }
+  readonly property bool showing: labels.length > 0 && (overlayOn || previewOn)
   readonly property string vertical: service ? String(service.vertical || "bottom") : "bottom"
   readonly property string horizontal: service ? String(service.horizontal || "left") : "left"
   readonly property int pad: service ? Math.max(0, Number(service.padding || 0)) : 24
@@ -24,24 +30,11 @@ Item {
   readonly property string actionPlacement: service ? String(service.actionPosition || "below") : "below"
   readonly property string actionText: service ? String(service.displayedAction || "") : ""
   readonly property bool actionVisible: actionOn && actionText !== ""
-  readonly property int actionCap: Style.space(360)
-  readonly property int framePadX: frameOn ? Style.space(16) : 0
-  readonly property int framePadY: frameOn ? Style.space(12) : 0
-  readonly property int actionHAlign: {
-    if (horizontal === "right") return Text.AlignRight
-    if (horizontal === "middle") return Text.AlignHCenter
-    return Text.AlignLeft
-  }
-  readonly property bool useShellColors: !service || String(service.colorTheme || "shell") === "shell"
-  readonly property color overlayBg: useShellColors
-    ? Color.background
-    : Style.colorFromHex(service.backgroundColor, Color.background)
-  readonly property color overlayBorder: useShellColors
-    ? Color.popups.border
-    : Style.colorFromHex(service.borderColor, Color.popups.border)
-  readonly property color overlayFont: useShellColors
-    ? Color.popups.text
-    : Style.colorFromHex(service.fontColor, Color.popups.text)
+  readonly property bool useShellColors: service ? service.useShellColors === true : true
+  readonly property color overlayBg: service ? service.overlayBackground : Color.background
+  readonly property color overlayBorder: service ? service.overlayBorderTone : Color.popups.border
+  readonly property color overlayFont: service ? service.overlayFontTone : Color.popups.text
+  readonly property int colorEpoch: service ? Number(service.colorEpoch || 0) : 0
 
   Variants {
     model: Quickshell.screens
@@ -62,11 +55,9 @@ Item {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         mask: Region {}
 
-        Item {
+        KeycastCard {
           id: card
           visible: root.showing
-          width: Math.max(1, stack.implicitWidth + root.framePadX)
-          height: Math.max(1, stack.implicitHeight + root.framePadY)
           x: Keys.overlayX(root.horizontal, width, parent.width, root.pad)
           y: Keys.overlayY(root.vertical, height, parent.height, root.pad)
           scale: root.overlayScale
@@ -86,106 +77,32 @@ Item {
             return Item.Center
           }
           opacity: root.showing ? 1 : 0
+          labels: root.labels
+          actionText: root.actionText
+          actionVisible: root.actionVisible
+          actionPlacement: root.actionPlacement
+          horizontal: root.horizontal
+          frameOn: root.frameOn
+          cornerPx: root.cornerPx
+          overlayBg: {
+            var _tick = root.colorEpoch
+            return root.overlayBg
+          }
+          overlayBorder: {
+            var _tick = root.colorEpoch
+            return root.overlayBorder
+          }
+          overlayFont: {
+            var _tick = root.colorEpoch
+            return root.overlayFont
+          }
+          useShellColors: {
+            var _tick = root.colorEpoch
+            return root.useShellColors
+          }
 
           Behavior on opacity {
             NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
-          }
-
-          BorderSurface {
-            anchors.fill: parent
-            visible: root.frameOn
-            color: Util.alpha(root.overlayBg, 0.94)
-            borderSpec: root.useShellColors
-              ? Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
-              : Border.flat(root.overlayBorder, Math.max(1, Style.space(2)))
-            radius: root.cornerPx
-          }
-
-          Column {
-            id: stack
-            anchors.centerIn: parent
-            width: Math.max(keysRow.implicitWidth, root.actionVisible
-              ? Math.min(root.actionCap, actionMetrics.implicitWidth) : 0)
-            spacing: root.actionVisible ? Style.space(6) : 0
-
-            Text {
-              id: actionMetrics
-              visible: false
-              text: root.actionText
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-            }
-
-            Text {
-              id: actionAbove
-              visible: root.actionVisible && root.actionPlacement === "above"
-              width: parent.width
-              horizontalAlignment: root.actionHAlign
-              textFormat: Text.PlainText
-              wrapMode: Text.NoWrap
-              elide: Text.ElideRight
-              text: root.actionText
-              color: root.overlayFont
-              opacity: 0.88
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-            }
-
-            Item {
-              width: parent.width
-              height: keysRow.implicitHeight
-
-              Row {
-                id: keysRow
-                x: Keys.alignX(root.horizontal, implicitWidth, parent.width)
-                spacing: Style.space(6)
-
-                Repeater {
-                  model: root.labels
-
-                  delegate: BorderSurface {
-                    id: keyCap
-                    required property var modelData
-
-                    implicitWidth: Math.max(Style.space(32), keyLabel.implicitWidth + Style.space(14))
-                    implicitHeight: Style.space(34)
-                    color: root.frameOn
-                      ? Util.alpha(root.overlayFont, 0.10)
-                      : Util.alpha(root.overlayBg, 0.94)
-                    borderSpec: Border.flat(root.useShellColors
-                      ? Util.alpha(root.overlayFont, root.frameOn ? 0.22 : 0.35)
-                      : Util.alpha(root.overlayBorder, root.frameOn ? 0.85 : 1), 1)
-                    radius: root.cornerPx
-
-                    Text {
-                      id: keyLabel
-                      anchors.centerIn: parent
-                      textFormat: Text.PlainText
-                      text: String(keyCap.modelData || "")
-                      color: root.overlayFont
-                      font.family: Style.font.family
-                      font.pixelSize: Style.font.title
-                      font.bold: true
-                    }
-                  }
-                }
-              }
-            }
-
-            Text {
-              id: actionBelow
-              visible: root.actionVisible && root.actionPlacement === "below"
-              width: parent.width
-              horizontalAlignment: root.actionHAlign
-              textFormat: Text.PlainText
-              wrapMode: Text.NoWrap
-              elide: Text.ElideRight
-              text: root.actionText
-              color: root.overlayFont
-              opacity: 0.88
-              font.family: Style.font.family
-              font.pixelSize: Style.font.body
-            }
           }
         }
       }

@@ -51,9 +51,13 @@ BarWidget {
 
   onBarChanged: syncService()
   onSettingsChanged: pushSettings()
+  onOpenedChanged: {
+    if (panelLoader.item) panelLoader.item.syncPreview()
+  }
   onServiceChanged: {
     if (panelLoader.item) panelLoader.item.service = service
     pushSettings()
+    if (panelLoader.item) panelLoader.item.syncPreview()
   }
   Component.onCompleted: syncService()
 

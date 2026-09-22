@@ -3,6 +3,7 @@
 // Hyprland's input.keyboard.key callback uses XKB keycodes (Linux evdev + 8).
 var XKB_OFFSET = 8
 var PROTOCOL_PREFIX = "keycast:v1:held:"
+var EMPTY_LABELS = []
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
 var ACTION_POSITIONS = ["above", "below"]
@@ -83,6 +84,12 @@ var LABEL_TOKENS = {
   Caps: "CAPS",
   Print: "PRINT"
 }
+var TOKEN_LABELS = {}
+for (var _label in LABEL_TOKENS) TOKEN_LABELS[LABEL_TOKENS[_label]] = _label
+TOKEN_LABELS.SUPER = "Super"
+TOKEN_LABELS.CTRL = "Ctrl"
+TOKEN_LABELS.ALT = "Alt"
+TOKEN_LABELS.SHIFT = "Shift"
 
 // XKB code -> modifier family. Left and right keys collapse to one label.
 var MODIFIER_GROUP = {
@@ -437,6 +444,53 @@ function actionForLabels(catalog, labels) {
   return catalog[combo] || ""
 }
 
+function tokenToLabel(token) {
+  var text = String(token || "")
+  if (text === "") return ""
+  if (TOKEN_LABELS[text]) return TOKEN_LABELS[text]
+  if (/^F([1-9]|1[0-2])$/.test(text)) return text
+  if (text.length === 1) return text
+  return text.charAt(0) + text.substring(1).toLowerCase()
+}
+
+function comboToLabels(combo) {
+  var parts = String(combo || "").split("+")
+  var labels = []
+  for (var i = 0; i < parts.length; i++) {
+    var label = tokenToLabel(parts[i])
+    if (label !== "") labels.push(label)
+  }
+  return labels
+}
+
+function catalogCombos(catalog) {
+  var combos = []
+  if (!catalog || typeof catalog !== "object") return combos
+  for (var combo in catalog) {
+    if (catalog[combo]) combos.push(combo)
+  }
+  return combos
+}
+
+function randomPreview(catalog) {
+  var combos = catalogCombos(catalog)
+  if (combos.length === 0) {
+    return { labels: ["Super", "K"], action: "Keybindings", combo: "SUPER+K" }
+  }
+  var combo = combos[Math.floor(Math.random() * combos.length)]
+  return {
+    labels: comboToLabels(combo),
+    action: catalog[combo],
+    combo: combo
+  }
+}
+
+function overlayLabels(displayedKeys, previewEnabled, previewKeys) {
+  if (displayedKeys && displayedKeys.length > 0) return displayedKeys
+  if (previewEnabled && previewKeys && previewKeys.length > 0) return previewKeys
+  return EMPTY_LABELS
+}
+
 function isCatalogChangeEvent(name) {
   var text = String(name || "")
   return text === "configreloaded" || text === "configreloadedv2"
@@ -473,6 +527,8 @@ function normalizeSettings(entry) {
     lingerMs: clampInt(src.lingerMs, 0, 2000, 600),
     actionEnabled: src.actionEnabled === undefined || src.actionEnabled === null || src.actionEnabled === ""
       ? true : isEnabledFlag(src.actionEnabled),
+    previewEnabled: src.previewEnabled === undefined || src.previewEnabled === null || src.previewEnabled === ""
+      ? true : isEnabledFlag(src.previewEnabled),
     actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below"),
     colorTheme: pickChoice(src.colorTheme, COLOR_THEMES, "shell"),
     backgroundColor: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),
@@ -522,6 +578,24 @@ function normalizeHex(value, fallback) {
   }
   var longMatch = text.match(/^#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/)
   if (longMatch) return "#" + longMatch[1].toUpperCase()
+  return fb
+}
+
+function byteHex(n) {
+  var v = Math.round(Math.max(0, Math.min(255, Number(n) || 0)))
+  var hex = v.toString(16).toUpperCase()
+  return hex.length < 2 ? "0" + hex : hex
+}
+
+function colorToHex(value, fallback) {
+  var fb = normalizeHex(fallback, DEFAULT_HEX.background)
+  if (value === undefined || value === null || value === "") return fb
+  if (typeof value === "string") return normalizeHex(value, fb)
+  if (typeof value === "object" && value.r !== undefined && value.g !== undefined && value.b !== undefined)
+    return "#" + byteHex(value.r * 255) + byteHex(value.g * 255) + byteHex(value.b * 255)
+  var text = String(value)
+  var hash = text.indexOf("#")
+  if (hash >= 0) return normalizeHex(text.substring(hash, hash + 7), fb)
   return fb
 }
 
@@ -577,12 +651,16 @@ if (typeof module !== "undefined") {
     comboFromLabels: comboFromLabels,
     parseBinds: parseBinds,
     actionForLabels: actionForLabels,
+    comboToLabels: comboToLabels,
+    randomPreview: randomPreview,
+    overlayLabels: overlayLabels,
     isCatalogChangeEvent: isCatalogChangeEvent,
     overlayX: overlayX,
     alignX: alignX,
     overlayY: overlayY,
     overlayRadius: overlayRadius,
     normalizeHex: normalizeHex,
+    colorToHex: colorToHex,
     presetColors: presetColors,
     resolvedOverlayColors: resolvedOverlayColors,
     themeOptions: themeOptions,

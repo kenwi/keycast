@@ -30,6 +30,7 @@
       "scale": 1,
       "lingerMs": 600,
       "actionEnabled": true,
+      "previewEnabled": true,
       "actionPosition": "below",
       "colorTheme": "shell",
       "backgroundColor": "#1A1A1A",
@@ -108,6 +109,13 @@
         "type": "boolean",
         "label": "Show shortcut action",
         "description": "Bind description from Hyprland, same source as Super+K",
+        "defaultValue": true
+      },
+      {
+        "key": "previewEnabled",
+        "type": "boolean",
+        "label": "Preview keypress",
+        "description": "Show a sample hotkey on the overlay while settings are open",
         "defaultValue": true
       },
       {

@@ -32,6 +32,7 @@ if shutil.which("qmllint") and os.environ.get("OMARCHY_PATH"):
         "BarWidget.qml",
         "Panel.qml",
         "Overlay.qml",
+        "KeycastCard.qml",
         "Service.qml",
     ]
     run("qmllint", qml)

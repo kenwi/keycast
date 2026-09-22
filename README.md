@@ -16,7 +16,9 @@ shortcut. The box is click-through so it does not steal clicks in a recording.*
 
 *Overlay page - right-click the bar icon. Turn the overlay on, set outer box
 and rounding, linger after release, and place the shortcut action above or
-below the keys. The Hyprland bridge is installed or removed from this page.*
+below the keys. Optionally show a sample hotkey on the overlay while this
+panel is open so placement and look update immediately. The Hyprland bridge is
+installed or removed from this page.*
 
 ![Position settings](screenshots/settings-position.png)
 
@@ -25,8 +27,9 @@ the chosen edge, and overlay scale.*
 
 ![Color settings](screenshots/settings-colors.png)
 
-*Colors page - Shell follows the Omarchy theme. Presets fill background, border,
-and font. Editing a hex value switches to Custom.*
+*Colors page - Shell follows the Omarchy theme and fills background, border,
+and font with the colors in use. Other presets fill those hex fields too.
+Editing a hex value switches to Custom.*
 
 ## Features
 
@@ -41,6 +44,7 @@ and font. Editing a hex value switches to Custom.*
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold) plus custom hex for background, border, and font
+- Settings panel can show a live overlay preview of a random real hotkey while open
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for position, look, and the Hyprland bridge
@@ -106,6 +110,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "scale": 1,
   "lingerMs": 600,
   "actionEnabled": true,
+  "previewEnabled": true,
   "actionPosition": "below",
   "colorTheme": "shell",
   "backgroundColor": "#1A1A1A",
@@ -126,6 +131,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2` | `1` |
 | `lingerMs` | 0-2000 ms | `600` |
 | `actionEnabled` | `true` / `false` | `true` |
+| `previewEnabled` | `true` / `false` | `true` |
 | `actionPosition` | `above` / `below` | `below` |
 | `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `custom` | `shell` |
 | `backgroundColor` | `#RRGGBB` | `#1A1A1A` |
@@ -143,6 +149,7 @@ omarchy bar set local.keycast frameEnabled false
 omarchy bar set local.keycast roundingEnabled false
 omarchy bar set local.keycast rounding 12
 omarchy bar set local.keycast actionEnabled true
+omarchy bar set local.keycast previewEnabled false
 omarchy bar set local.keycast actionPosition above
 omarchy bar set local.keycast colorTheme mocha
 omarchy bar set local.keycast backgroundColor "#1A1A1A"
@@ -158,6 +165,7 @@ omarchy-shell local.keycast toggle
 | `manifest.json` | Plugin id, service + bar-widget entry points, settings schema |
 | `Service.qml` | Bridge events, overlay state, IPC, settings |
 | `Overlay.qml` | Click-through corner box on every monitor |
+| `KeycastCard.qml` | Keycap card drawn by the overlay |
 | `BarWidget.qml` | Toggle + settings panel host |
 | `Panel.qml` | Bridge setup, position, look, colors, linger, action label |
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
