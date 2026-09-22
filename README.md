@@ -2,9 +2,9 @@
 
 On-screen overlay of currently pressed keys, for screen recordings.
 
-The overlay is a click-through box of keycaps. It defaults to the lower-left
-corner. Position, padding, scale, outer box, corner rounding, colors, and an
-optional shortcut action label are configurable.
+The overlay is a click-through box of keycaps. It defaults to the bottom
+center, without an outer box. Position, padding, scale, outer box, corner
+rounding, colors, and an optional shortcut action label are configurable.
 
 ![Key overlay](screenshots/overlay.png)
 
@@ -36,7 +36,7 @@ switches to Custom.*
 ## Features
 
 - Shows the keys that are currently held, not a typing history
-- Default position: bottom left
+- Default position: bottom middle
 - Configurable vertical edge (`top` / `middle` / `bottom`)
 - Configurable horizontal edge (`left` / `middle` / `right`)
 - Configurable padding from the chosen edge (0-400 px, default 24; ignored on a middle axis)
@@ -105,18 +105,18 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 {
   "id": "local.keycast",
   "overlayEnabled": false,
-  "frameEnabled": true,
+  "frameEnabled": false,
   "roundingEnabled": true,
   "rounding": 8,
   "vertical": "bottom",
-  "horizontal": "left",
+  "horizontal": "middle",
   "padding": 24,
   "scale": 1,
   "scaleCustom": false,
   "lingerMs": 600,
   "actionEnabled": true,
   "previewEnabled": true,
-  "actionPosition": "below",
+  "actionPosition": "above",
   "fontFamily": "shell",
   "colorTheme": "shell",
   "backgroundColor": "#1A1A1A",
@@ -128,18 +128,18 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | Key | Values | Default |
 |-----|--------|---------|
 | `overlayEnabled` | `true` / `false` | `false` |
-| `frameEnabled` | `true` / `false` | `true` |
+| `frameEnabled` | `true` / `false` | `false` |
 | `roundingEnabled` | `true` / `false` | `true` |
 | `rounding` | 0-32 px | `8` |
 | `vertical` | `top` / `middle` / `bottom` | `bottom` |
-| `horizontal` | `left` / `middle` / `right` | `left` |
+| `horizontal` | `left` / `middle` / `right` | `middle` |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
 | `scaleCustom` | `true` / `false` | `false` |
 | `lingerMs` | 0-2000 ms | `600` |
 | `actionEnabled` | `true` / `false` | `true` |
 | `previewEnabled` | `true` / `false` | `true` |
-| `actionPosition` | `above` / `below` | `below` |
+| `actionPosition` | `above` / `below` | `above` |
 | `fontFamily` | `shell` or an installed family name | `shell` |
 | `colorTheme` | `shell` / `dark` / `light` / `contrast` / `nord` / `mocha` / `gold` / `neon` / `matrix` / `vapor` / `cyber` / `ember` / `ice` / `custom` | `shell` |
 | `backgroundColor` | `#RRGGBB` | `#1A1A1A` |

@@ -21,18 +21,18 @@
     "defaultSection": "right",
     "defaults": {
       "overlayEnabled": false,
-      "frameEnabled": true,
+      "frameEnabled": false,
       "roundingEnabled": true,
       "rounding": 8,
       "vertical": "bottom",
-      "horizontal": "left",
+      "horizontal": "middle",
       "padding": 24,
       "scale": 1,
       "scaleCustom": false,
       "lingerMs": 600,
       "actionEnabled": true,
       "previewEnabled": true,
-      "actionPosition": "below",
+      "actionPosition": "above",
       "fontFamily": "shell",
       "colorTheme": "shell",
       "backgroundColor": "#1A1A1A",
@@ -51,7 +51,7 @@
         "type": "boolean",
         "label": "Outer box",
         "description": "Background and border around the keycaps",
-        "defaultValue": true
+        "defaultValue": false
       },
       {
         "key": "roundingEnabled",
@@ -79,7 +79,7 @@
         "type": "enum",
         "label": "Horizontal edge",
         "options": ["left", "middle", "right"],
-        "defaultValue": "left"
+        "defaultValue": "middle"
       },
       {
         "key": "padding",
@@ -131,7 +131,7 @@
         "type": "enum",
         "label": "Action placement",
         "options": ["above", "below"],
-        "defaultValue": "below"
+        "defaultValue": "above"
       },
       {
         "key": "fontFamily",

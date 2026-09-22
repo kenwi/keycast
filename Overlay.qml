@@ -12,7 +12,7 @@ Item {
 
   readonly property bool overlayOn: service ? service.overlayEnabled === true : false
   readonly property bool previewOn: service ? service.previewActive === true : false
-  readonly property bool frameOn: service ? service.frameEnabled !== false : true
+  readonly property bool frameOn: service ? service.frameEnabled === true : false
   readonly property int previewEpoch: service ? Number(service.previewEpoch || 0) : 0
   readonly property var labels: {
     var _epoch = root.previewEpoch
@@ -21,13 +21,13 @@ Item {
   }
   readonly property bool showing: labels.length > 0 && (overlayOn || previewOn)
   readonly property string vertical: service ? String(service.vertical || "bottom") : "bottom"
-  readonly property string horizontal: service ? String(service.horizontal || "left") : "left"
+  readonly property string horizontal: service ? String(service.horizontal || "middle") : "middle"
   readonly property int pad: service ? Math.max(0, Number(service.padding || 0)) : 24
   readonly property real overlayScale: service ? Number(service.scaleFactor || 1) : 1
   readonly property int cornerPx: service
     ? Keys.overlayRadius(service.roundingEnabled, service.rounding) : 8
   readonly property bool actionOn: service ? service.actionEnabled !== false : true
-  readonly property string actionPlacement: service ? String(service.actionPosition || "below") : "below"
+  readonly property string actionPlacement: service ? String(service.actionPosition || "above") : "above"
   readonly property string actionText: service ? String(service.displayedAction || "") : ""
   readonly property bool actionVisible: actionOn && actionText !== ""
   readonly property bool useShellColors: service ? service.useShellColors === true : true

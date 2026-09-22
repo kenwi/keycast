@@ -23,6 +23,7 @@ def run(name, command, cwd=None):
 run("manifest", ["omarchy", "plugin", "validate", str(root)])
 run("lua-syntax", ["luac", "-p", str(root / "bridge.lua")])
 run("bridge-harness", ["lua", str(root / "tests" / "bridge.lua")])
+run("bridge-control", ["python3", str(root / "tests" / "control.py")])
 run("keys", ["node", str(root / "tests" / "keys.js")])
 
 if shutil.which("qmllint") and os.environ.get("OMARCHY_PATH"):

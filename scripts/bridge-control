@@ -44,9 +44,12 @@ def marker_state(text):
         return "invalid", "malformed-markers"
     block_end = ends[0] + len(END)
     current = text[begins[0]:block_end]
-    if current not in (BLOCK, BLOCK + "\n"):
-        return "invalid", "malformed-markers"
-    return "present", None
+    if current in (BLOCK, BLOCK + "\n"):
+        return "present", None
+    inner = text[begins[0] + len(BEGIN):ends[0]].strip()
+    if re.fullmatch(r'pcall\(dofile, "[^"]+"\)', inner):
+        return "stale", None
+    return "invalid", "malformed-markers"
 
 
 def insertion(text):
@@ -133,10 +136,16 @@ def mutate(action):
         raise SystemExit(1)
     target = Path(result["resolvedPath"])
     text = target.read_text(encoding="utf-8")
+    state = result["managedBlockState"]
     if action == "enable":
-        next_text = text if result["managedBlockState"] == "present" else insertion(text)
+        if state == "present":
+            next_text = text
+        elif state == "stale":
+            next_text = insertion(remove_block(text))
+        else:
+            next_text = insertion(text)
     else:
-        next_text = remove_block(text) if result["managedBlockState"] == "present" else text
+        next_text = remove_block(text) if state in ("present", "stale") else text
     if next_text != text:
         backup(target)
         target.write_text(next_text, encoding="utf-8")

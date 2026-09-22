@@ -13,11 +13,11 @@ Item {
   property var manifest: null
 
   property bool overlayEnabled: false
-  property bool frameEnabled: true
+  property bool frameEnabled: false
   property bool roundingEnabled: true
   property int rounding: 8
   property string vertical: "bottom"
-  property string horizontal: "left"
+  property string horizontal: "middle"
   property int padding: 24
   property real scaleFactor: 1
   property bool scaleCustom: false
@@ -25,7 +25,7 @@ Item {
   property int lingerMs: 600
   property bool actionEnabled: true
   property bool previewEnabled: true
-  property string actionPosition: "below"
+  property string actionPosition: "above"
   property string colorTheme: "shell"
   property string fontFamily: "shell"
   readonly property string overlayTypeface: Keys.resolvedFontFamily(fontFamily, Style.font.family)

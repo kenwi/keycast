@@ -581,12 +581,12 @@ function normalizeSettings(entry) {
   return {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
-      ? true : isEnabledFlag(frameRaw),
+      ? false : isEnabledFlag(frameRaw),
     roundingEnabled: src.roundingEnabled === undefined || src.roundingEnabled === null || src.roundingEnabled === ""
       ? true : isEnabledFlag(src.roundingEnabled),
     rounding: clampInt(src.rounding, 0, 32, 8),
     vertical: pickChoice(src.vertical, VERTICALS, "bottom"),
-    horizontal: pickChoice(src.horizontal, HORIZONTALS, "left"),
+    horizontal: pickChoice(src.horizontal, HORIZONTALS, "middle"),
     padding: clampInt(src.padding, 0, 400, 24),
     scale: scale,
     scaleCustom: scaleCustom,
@@ -595,7 +595,7 @@ function normalizeSettings(entry) {
       ? true : isEnabledFlag(src.actionEnabled),
     previewEnabled: src.previewEnabled === undefined || src.previewEnabled === null || src.previewEnabled === ""
       ? true : isEnabledFlag(src.previewEnabled),
-    actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "below"),
+    actionPosition: pickChoice(src.actionPosition, ACTION_POSITIONS, "above"),
     colorTheme: pickChoice(src.colorTheme, COLOR_THEMES, "shell"),
     fontFamily: normalizeFontFamily(src.fontFamily),
     backgroundColor: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),

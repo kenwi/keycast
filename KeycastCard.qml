@@ -9,9 +9,9 @@ Item {
   property var labels: []
   property string actionText: ""
   property bool actionVisible: false
-  property string actionPlacement: "below"
-  property string horizontal: "left"
-  property bool frameOn: true
+  property string actionPlacement: "above"
+  property string horizontal: "middle"
+  property bool frameOn: false
   property int cornerPx: 8
   property color overlayBg: Color.background
   property color overlayBorder: Color.popups.border

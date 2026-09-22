@@ -221,10 +221,10 @@ Panel {
                 width: parent.width
                 label: "Outer box"
                 description: "Background and border around the keycaps."
-                checked: root.service ? root.service.frameEnabled !== false : true
+                checked: root.service ? root.service.frameEnabled === true : false
                 foreground: root.fg
                 fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setFrameEnabled(!(root.service.frameEnabled !== false))
+                onClicked: if (root.service) root.service.setFrameEnabled(!(root.service.frameEnabled === true))
               }
 
               Toggle {
@@ -302,7 +302,7 @@ Panel {
                 width: parent.width
                 foreground: root.fg
                 fontFamily: root.fontFamily
-                value: root.service ? root.service.actionPosition : "below"
+                value: root.service ? root.service.actionPosition : "above"
                 options: [
                   { value: "above", label: "Above" },
                   { value: "below", label: "Below" }
@@ -352,7 +352,7 @@ Panel {
                 width: parent.width
                 foreground: root.fg
                 fontFamily: root.fontFamily
-                value: root.service ? root.service.horizontal : "left"
+                value: root.service ? root.service.horizontal : "middle"
                 options: [
                   { value: "left", label: "Left" },
                   { value: "middle", label: "Middle" },
