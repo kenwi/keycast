@@ -79,7 +79,14 @@ Item {
             color: "transparent"
             border.width: 2
             border.color: root.overlayBorder
-            opacity: 0.9
+            opacity: {
+              var _tick = root.service ? root.service.rippleTick : 0
+              if (!root.service || root.service.mouseRippleFade !== true || modelData.held === true)
+                return 0.9
+              var life = Math.max(100, Number(root.service.mouseRippleMs) || 400)
+              var age = Date.now() - Number(modelData.born || 0)
+              return 0.9 * Math.max(0, 1 - age / life)
+            }
           }
         }
 

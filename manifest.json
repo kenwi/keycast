@@ -51,6 +51,8 @@
       "mouseRequireKeys": false,
       "mouseRipple": true,
       "mouseRippleScroll": false,
+      "mouseRippleFollow": false,
+      "mouseRippleFade": false,
       "mousePlacement": "inline",
       "mouseLabelStyle": "short",
       "mouseLingerMs": 500,
@@ -262,6 +264,18 @@
         "defaultValue": false
       },
       {
+        "key": "mouseRippleFollow",
+        "type": "boolean",
+        "label": "Follow a drag",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseRippleFade",
+        "type": "boolean",
+        "label": "Fade out",
+        "defaultValue": false
+      },
+      {
         "key": "mousePlacement",
         "type": "enum",
         "label": "Mouse placement",
@@ -294,7 +308,7 @@
       {
         "key": "mouseRippleMs",
         "type": "integer",
-        "label": "Ripple duration (ms)",
+        "label": "Ripple linger (ms)",
         "min": 100,
         "max": 2000,
         "defaultValue": 400

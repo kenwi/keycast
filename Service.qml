@@ -45,6 +45,9 @@ Item {
   property bool mouseRequireKeys: false
   property bool mouseRipple: true
   property bool mouseRippleScroll: false
+  property bool mouseRippleFollow: false
+  property bool mouseRippleFade: false
+  property int rippleTick: 0
   property string mousePlacement: "inline"
   property string mouseLabelStyle: "short"
   property int mouseLingerMs: 500
@@ -169,6 +172,8 @@ Item {
     mouseRequireKeys = next.mouseRequireKeys
     mouseRipple = next.mouseRipple
     mouseRippleScroll = next.mouseRippleScroll
+    mouseRippleFollow = next.mouseRippleFollow
+    mouseRippleFade = next.mouseRippleFade
     mousePlacement = next.mousePlacement
     mouseLabelStyle = next.mouseLabelStyle
     mouseLingerMs = next.mouseLingerMs
@@ -223,6 +228,8 @@ Item {
       mouseRequireKeys: mouseRequireKeys,
       mouseRipple: mouseRipple,
       mouseRippleScroll: mouseRippleScroll,
+      mouseRippleFollow: mouseRippleFollow,
+      mouseRippleFade: mouseRippleFade,
       mousePlacement: mousePlacement,
       mouseLabelStyle: mouseLabelStyle,
       mouseLingerMs: mouseLingerMs,
@@ -436,15 +443,59 @@ Item {
     mouseLinger.restart()
   }
 
-  function pushRipple(parsed) {
+  function pushRipple(parsed, held) {
     var next = pointerRipples.slice()
     next.push({
       id: ++rippleSerial,
+      button: parsed.button,
       x: parsed.x,
       y: parsed.y,
-      born: Date.now()
+      born: Date.now(),
+      held: held === true
     })
     if (next.length > 8) next = next.slice(next.length - 8)
+    pointerRipples = next
+  }
+
+  function releaseRipple(button) {
+    var next = pointerRipples.slice()
+    var changed = false
+    var now = Date.now()
+    for (var i = 0; i < next.length; i++) {
+      if (next[i].button !== button || next[i].held !== true) continue
+      next[i] = {
+        id: next[i].id,
+        button: next[i].button,
+        x: next[i].x,
+        y: next[i].y,
+        born: now,
+        held: false
+      }
+      changed = true
+    }
+    if (changed) pointerRipples = next
+  }
+
+  function moveRipple(parsed) {
+    var next = pointerRipples.slice()
+    var found = -1
+    for (var i = next.length - 1; i >= 0; i--) {
+      if (next[i].button === parsed.button && next[i].held === true) {
+        found = i
+        break
+      }
+    }
+    if (found < 0) return
+    var item = next[found]
+    if (item.x === parsed.x && item.y === parsed.y) return
+    next[found] = {
+      id: item.id,
+      button: item.button,
+      x: parsed.x,
+      y: parsed.y,
+      born: item.born,
+      held: true
+    }
     pointerRipples = next
   }
 
@@ -458,16 +509,22 @@ Item {
       pointerPulse = ""
       mouseLinger.stop()
       publishPointer()
-      if (mouseRipple) pushRipple(parsed)
+      if (mouseRipple) {
+        releaseRipple(parsed.button)
+        pushRipple(parsed, true)
+      }
     } else if (parsed.phase === "up") {
       pointerHeld = withoutButton(pointerHeld, parsed.button)
+      releaseRipple(parsed.button)
       if (pointerHeld.length === 0) armMouseLinger()
       else publishPointer()
     } else if (parsed.phase === "pulse") {
       pointerPulse = parsed.button
       publishPointer()
       armMouseLinger()
-      if (mouseRipple && mouseRippleScroll) pushRipple(parsed)
+      if (mouseRipple && mouseRippleScroll) pushRipple(parsed, false)
+    } else if (parsed.phase === "move") {
+      if (mouseRipple && mouseRippleFollow) moveRipple(parsed)
     }
   }
 
@@ -636,16 +693,17 @@ Item {
   }
 
   Timer {
-    interval: 50
+    interval: mouseRippleFade ? 16 : 50
     repeat: true
     running: root.pointerRipples.length > 0
     onTriggered: {
+      if (root.mouseRippleFade) root.rippleTick = root.rippleTick + 1
       var now = Date.now()
       var life = Math.max(100, root.mouseRippleMs)
       var keep = []
       var list = root.pointerRipples
       for (var i = 0; i < list.length; i++) {
-        if (now - list[i].born < life) keep.push(list[i])
+        if (list[i].held === true || now - list[i].born < life) keep.push(list[i])
       }
       if (keep.length !== list.length) root.pointerRipples = keep
     }

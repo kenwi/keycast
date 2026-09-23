@@ -77,7 +77,9 @@ var MOUSE_FLAG_DEFAULTS = {
   mouseWheelRight: false,
   mouseRequireKeys: false,
   mouseRipple: true,
-  mouseRippleScroll: false
+  mouseRippleScroll: false,
+  mouseRippleFollow: false,
+  mouseRippleFade: false
 }
 var POINTER_LABELS = {
   short: {
@@ -433,7 +435,7 @@ function parsePointer(payload) {
   if (parts.length < 3) return { ok: false, error: "shape" }
   var phase = parts[0]
   var button = parts[1]
-  if (phase !== "down" && phase !== "up" && phase !== "pulse") return { ok: false, error: "phase" }
+  if (phase !== "down" && phase !== "up" && phase !== "pulse" && phase !== "move") return { ok: false, error: "phase" }
   if (!POINTER_FLAG[button]) return { ok: false, error: "button" }
   var xy = parts[2].split(",")
   if (xy.length !== 2) return { ok: false, error: "pos" }
@@ -717,6 +719,8 @@ function normalizeSettings(entry) {
     mouseRequireKeys: flagOr(src.mouseRequireKeys, MOUSE_FLAG_DEFAULTS.mouseRequireKeys),
     mouseRipple: flagOr(src.mouseRipple, MOUSE_FLAG_DEFAULTS.mouseRipple),
     mouseRippleScroll: flagOr(src.mouseRippleScroll, MOUSE_FLAG_DEFAULTS.mouseRippleScroll),
+    mouseRippleFollow: flagOr(src.mouseRippleFollow, MOUSE_FLAG_DEFAULTS.mouseRippleFollow),
+    mouseRippleFade: flagOr(src.mouseRippleFade, MOUSE_FLAG_DEFAULTS.mouseRippleFade),
     mousePlacement: pickChoice(src.mousePlacement, MOUSE_PLACEMENTS, "inline"),
     mouseLabelStyle: pickChoice(src.mouseLabelStyle, MOUSE_LABEL_STYLES, "short"),
     mouseLingerMs: clampInt(src.mouseLingerMs, 0, 2000, 500),

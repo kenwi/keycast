@@ -20,12 +20,16 @@ local bridge = first and {
   emitting = false,
 } or existing
 if first then
+  bridge.buttons = {}
+  bridge.last_move = {}
   _G[STATE_NAME] = bridge
 else
   bridge.held = {}
   bridge.order = {}
   bridge.last = nil
   bridge.emitting = false
+  bridge.buttons = {}
+  bridge.last_move = {}
 end
 
 local function event_value(event, key, fallback)
@@ -80,15 +84,30 @@ local function cursor_payload(phase, id)
   return "keycast:v1:pointer:" .. phase .. ":" .. id .. ":" .. x .. "," .. y
 end
 
-local function bind_pointer()
+local function bind_buttons()
   local opts = { non_consuming = true, ignore_mods = true }
+  local up = { non_consuming = true, ignore_mods = true, release = true }
   for i = 1, #POINTER_BUTTONS do
     local id = POINTER_BUTTONS[i].id
     local key = POINTER_BUTTONS[i].key
-    hl.bind(key, function() emit_raw(cursor_payload("down", id)) end, opts)
-    local up = { non_consuming = true, ignore_mods = true, release = true }
-    hl.bind(key, function() emit_raw(cursor_payload("up", id)) end, up)
+    -- Replace only this exact button chord. Modifier chords such as
+    -- Super+left click stay in place.
+    if type(hl.unbind) == "function" then
+      pcall(hl.unbind, key)
+    end
+    hl.bind(key, function()
+      bridge.buttons[id] = true
+      emit_raw(cursor_payload("down", id))
+    end, opts)
+    hl.bind(key, function()
+      bridge.buttons[id] = nil
+      emit_raw(cursor_payload("up", id))
+    end, up)
   end
+end
+
+local function bind_wheels()
+  local opts = { non_consuming = true, ignore_mods = true }
   local last_wheel = {}
   for i = 1, #POINTER_WHEELS do
     local id = POINTER_WHEELS[i].id
@@ -138,7 +157,32 @@ hl.on("input.keyboard.key", function(keycode, timestamp, event_state)
 end)
 end
 
+bind_buttons()
+
 if not bridge.pointerBound then
-  bind_pointer()
+  bind_wheels()
   bridge.pointerBound = true
+end
+
+-- While a button is held, report cursor motion so the shell can slide the
+-- ripple. Held state comes from our own binds. is_key_down does not accept
+-- mouse buttons and raises on every poll.
+if bridge.dragTimer and type(bridge.dragTimer.set_enabled) == "function" then
+  pcall(function() bridge.dragTimer:set_enabled(false) end)
+end
+if type(hl.timer) == "function" then
+  bridge.dragTimer = hl.timer(function()
+    for i = 1, #POINTER_BUTTONS do
+      local item = POINTER_BUTTONS[i]
+      if bridge.buttons[item.id] then
+        local payload = cursor_payload("move", item.id)
+        if bridge.last_move[item.id] ~= payload then
+          bridge.last_move[item.id] = payload
+          emit_raw(payload)
+        end
+      else
+        bridge.last_move[item.id] = nil
+      end
+    end
+  end, { timeout = 50, type = "repeat" })
 end

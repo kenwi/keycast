@@ -2,6 +2,8 @@ local payloads = {}
 local handlers = {}
 
 local binds = {}
+local timers = {}
+local down_keys = {}
 
 hl = {
   dsp = {
@@ -18,6 +20,18 @@ hl = {
     return { remove = function() end }
   end,
   get_cursor_pos = function() return { x = 10, y = 20 } end,
+  is_key_down = function(key) return down_keys[key] == true end,
+  timer = function(fn, opts)
+    timers[#timers + 1] = { fn = fn, opts = opts or {} }
+    return { set_enabled = function() end, set_timeout = function() end }
+  end,
+  unbind = function(key)
+    local kept = {}
+    for i = 1, #binds do
+      if binds[i].key ~= key then kept[#kept + 1] = binds[i] end
+    end
+    binds = kept
+  end,
 }
 
 dofile((os.getenv("KEYCAST_ROOT") or ".") .. "/bridge.lua")
@@ -63,8 +77,9 @@ local before_binds = #binds
 dofile((os.getenv("KEYCAST_ROOT") or ".") .. "/bridge.lua")
 assert(#binds == before_binds, "mouse binds registered once")
 _G["__keycast_bridge_state"].pointerBound = nil
+local wheels_before = #binds
 dofile((os.getenv("KEYCAST_ROOT") or ".") .. "/bridge.lua")
-assert(#binds == before_binds + 14, "pointer binds install once when missing")
+assert(#binds == wheels_before + 4, "wheel binds install once when missing")
 
 local left_down = bind_for("mouse:272", false)
 assert(type(left_down) == "function", "left press bind")
@@ -77,5 +92,24 @@ local wheel = bind_for("mouse_down", false)
 assert(type(wheel) == "function", "wheel bind")
 wheel()
 assert(payloads[#payloads] == "keycast:v1:pointer:pulse:wheel-down:10,20", "wheel payload")
+
+local drag = timers[#timers]
+assert(drag.opts.timeout == 50 and drag.opts.type == "repeat", "drag poll interval")
+local before_move = #payloads
+drag.fn()
+assert(#payloads == before_move, "no move while buttons are up")
+left_down()
+drag.fn()
+assert(payloads[#payloads] == "keycast:v1:pointer:move:left:10,20", "drag move payload")
+local after_first = #payloads
+drag.fn()
+assert(#payloads == after_first, "drag move deduped")
+hl.get_cursor_pos = function() return { x = 30, y = 40 } end
+drag.fn()
+assert(payloads[#payloads] == "keycast:v1:pointer:move:left:30,40", "drag move follows cursor")
+local before_release = #payloads
+left_up()
+drag.fn()
+assert(#payloads == before_release + 1, "no move after release")
 
 print("bridge ok")

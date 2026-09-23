@@ -595,6 +595,15 @@ Panel {
                 fontFamily: root.fontFamily
                 onClicked: if (root.service) root.service.setMouseFlag("mouseRippleScroll", !(root.service.mouseRippleScroll === true))
               }
+              Toggle {
+                width: parent.width
+                label: "Follow a drag"
+                description: "Move the click ripple with the cursor while the button is held."
+                checked: root.service ? root.service.mouseRippleFollow === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleFollow", !(root.service.mouseRippleFollow === true))
+              }
               NumberField {
                 width: parent.width
                 label: "Ripple size (px)"
@@ -605,9 +614,18 @@ Panel {
                 fontFamily: root.fontFamily
                 onModified: function(value) { if (root.service) root.service.setMouseRippleSize(value) }
               }
+              Toggle {
+                width: parent.width
+                label: "Fade out"
+                description: "Lower the ring's opacity across the ripple linger. Off, it stays solid until it disappears."
+                checked: root.service ? root.service.mouseRippleFade === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleFade", !(root.service.mouseRippleFade === true))
+              }
               NumberField {
                 width: parent.width
-                label: "Ripple duration (ms)"
+                label: "Ripple linger (ms)"
                 value: root.service ? root.service.mouseRippleMs : 400
                 from: 100
                 to: 2000

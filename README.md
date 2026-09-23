@@ -44,7 +44,7 @@ switches to Custom.*
 - Optional corner rounding (0-32 px, default 8)
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x` / custom 0.5-5)
 - Overlay font: Shell (Omarchy UI font) or any family installed on the system
-- Mouse clicks and scroll on their own settings page: which buttons, placement, linger, and an optional cursor ripple. Short labels are `LMB` and `Wheel Dn`. Full names are `Left mouse` and `Scroll down`, so they do not match the arrow keys (`Left arrow`, `Right arrow`, `Up arrow`, `Down arrow`)
+- Mouse clicks and scroll on their own settings page: which buttons, placement, linger, and an optional cursor ripple. Follow a drag can slide that ripple while the button is held. Fade out lowers its opacity across the ripple linger. Short labels are `LMB` and `Wheel Dn`. Full names are `Left mouse` and `Scroll down`, so they do not match the arrow keys (`Left arrow`, `Right arrow`, `Up arrow`, `Down arrow`)
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold, Neon, Matrix, Vapor, Cyber, Ember, Ice) plus custom hex for background, border, and font
@@ -161,11 +161,13 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `mouseRequireKeys` | `true` / `false` | `false` |
 | `mouseRipple` | `true` / `false` | `true` |
 | `mouseRippleScroll` | `true` / `false` | `false` |
+| `mouseRippleFollow` | `true` / `false` | `false` |
+| `mouseRippleFade` | `true` / `false` | `false` |
 | `mousePlacement` | `inline` / `above` / `below` | `inline` |
 | `mouseLabelStyle` | `short` (`LMB`) / `name` (`Left mouse`) | `short` |
 | `mouseLingerMs` | 0-2000 ms | `500` |
 | `mouseRippleSize` | 8-160 px | `36` |
-| `mouseRippleMs` | 100-2000 ms | `400` |
+| `mouseRippleMs` | 100-2000 ms after release | `400` |
 
 CLI examples:
 
