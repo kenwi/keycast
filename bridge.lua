@@ -12,21 +12,21 @@ local STATE_NAME = "__keycast_bridge_state"
 local PREFIX = "keycast:v1:held:"
 
 local existing = rawget(_G, STATE_NAME)
-if type(existing) == "table" then
-  existing.held = {}
-  existing.order = {}
-  existing.last = nil
-  existing.emitting = false
-  return
-end
-
-local bridge = {
+local first = type(existing) ~= "table"
+local bridge = first and {
   held = {},
   order = {},
   last = nil,
   emitting = false,
-}
-_G[STATE_NAME] = bridge
+} or existing
+if first then
+  _G[STATE_NAME] = bridge
+else
+  bridge.held = {}
+  bridge.order = {}
+  bridge.last = nil
+  bridge.emitting = false
+end
 
 local function event_value(event, key, fallback)
   if type(event) ~= "table" then return fallback end
@@ -40,13 +40,66 @@ local function snapshot()
   return PREFIX .. table.concat(bridge.order, ",")
 end
 
-local function emit()
-  local payload = snapshot()
-  if payload == bridge.last or bridge.emitting then return end
-  bridge.last = payload
+local function emit_raw(payload)
+  if bridge.emitting then return end
   bridge.emitting = true
   pcall(function() hl.dispatch(hl.dsp.event(payload)) end)
   bridge.emitting = false
+end
+
+local function emit()
+  local payload = snapshot()
+  if payload == bridge.last then return end
+  bridge.last = payload
+  emit_raw(payload)
+end
+
+local POINTER_BUTTONS = {
+  { key = "mouse:272", id = "left" },
+  { key = "mouse:273", id = "right" },
+  { key = "mouse:274", id = "middle" },
+  { key = "mouse:275", id = "back" },
+  { key = "mouse:276", id = "forward" },
+}
+local POINTER_WHEELS = {
+  { key = "mouse_up", id = "wheel-up" },
+  { key = "mouse_down", id = "wheel-down" },
+  { key = "mouse_left", id = "wheel-left" },
+  { key = "mouse_right", id = "wheel-right" },
+}
+
+local function cursor_payload(phase, id)
+  local x, y = 0, 0
+  if type(hl.get_cursor_pos) == "function" then
+    local pos = hl.get_cursor_pos()
+    if type(pos) == "table" then
+      x = math.floor(tonumber(pos.x) or 0)
+      y = math.floor(tonumber(pos.y) or 0)
+    end
+  end
+  return "keycast:v1:pointer:" .. phase .. ":" .. id .. ":" .. x .. "," .. y
+end
+
+local function bind_pointer()
+  local opts = { non_consuming = true, ignore_mods = true }
+  for i = 1, #POINTER_BUTTONS do
+    local id = POINTER_BUTTONS[i].id
+    local key = POINTER_BUTTONS[i].key
+    hl.bind(key, function() emit_raw(cursor_payload("down", id)) end, opts)
+    local up = { non_consuming = true, ignore_mods = true, release = true }
+    hl.bind(key, function() emit_raw(cursor_payload("up", id)) end, up)
+  end
+  local last_wheel = {}
+  for i = 1, #POINTER_WHEELS do
+    local id = POINTER_WHEELS[i].id
+    local key = POINTER_WHEELS[i].key
+    hl.bind(key, function()
+      local now = os.clock()
+      if last_wheel[id] and (now - last_wheel[id]) < 0.05 then return end
+      last_wheel[id] = now
+      emit_raw(cursor_payload("pulse", id))
+    end, opts)
+  end
 end
 
 local function remove_code(code)
@@ -61,6 +114,7 @@ local function remove_code(code)
   return true
 end
 
+if first then
 hl.on("input.keyboard.key", function(keycode, timestamp, event_state)
   local code, state
   if type(keycode) == "table" then
@@ -82,3 +136,9 @@ hl.on("input.keyboard.key", function(keycode, timestamp, event_state)
   end
   emit()
 end)
+end
+
+if not bridge.pointerBound then
+  bind_pointer()
+  bridge.pointerBound = true
+end

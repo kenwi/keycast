@@ -19,7 +19,11 @@ Item {
     if (!service) return []
     return Keys.overlayLabels(service.displayedKeys, service.previewActive, service.previewKeys)
   }
-  readonly property bool showing: labels.length > 0 && (overlayOn || previewOn)
+  readonly property var mouseLabels: service ? service.displayedMouseLabels : []
+  readonly property string mousePlacement: service ? String(service.mousePlacement || "inline") : "inline"
+  readonly property bool cardOn: (labels.length > 0 || mouseLabels.length > 0) && (overlayOn || previewOn)
+  readonly property bool rippleOn: service && service.pointerRipples && service.pointerRipples.length > 0
+  readonly property bool showing: cardOn || rippleOn
   readonly property string vertical: service ? String(service.vertical || "bottom") : "bottom"
   readonly property string horizontal: service ? String(service.horizontal || "middle") : "middle"
   readonly property int pad: service ? Math.max(0, Number(service.padding || 0)) : 24
@@ -56,9 +60,32 @@ Item {
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         mask: Region {}
 
+        Repeater {
+          model: root.service ? root.service.pointerRipples : []
+
+          delegate: Rectangle {
+            required property var modelData
+            readonly property real sx: overlayWindow.screen ? Number(overlayWindow.screen.x) || 0 : 0
+            readonly property real sy: overlayWindow.screen ? Number(overlayWindow.screen.y) || 0 : 0
+            readonly property real sw: overlayWindow.screen ? Number(overlayWindow.screen.width) || 0 : 0
+            readonly property real sh: overlayWindow.screen ? Number(overlayWindow.screen.height) || 0 : 0
+            readonly property int diameter: root.service ? root.service.mouseRippleSize : 36
+            visible: modelData.x >= sx && modelData.x <= sx + sw && modelData.y >= sy && modelData.y <= sy + sh
+            x: modelData.x - sx - diameter / 2
+            y: modelData.y - sy - diameter / 2
+            width: diameter
+            height: diameter
+            radius: diameter / 2
+            color: "transparent"
+            border.width: 2
+            border.color: root.overlayBorder
+            opacity: 0.9
+          }
+        }
+
         KeycastCard {
           id: card
-          visible: root.showing
+          visible: root.cardOn
           x: Keys.overlayX(root.horizontal, width, parent.width, root.pad)
           y: Keys.overlayY(root.vertical, height, parent.height, root.pad)
           scale: root.overlayScale
@@ -79,6 +106,8 @@ Item {
           }
           opacity: root.showing ? 1 : 0
           labels: root.labels
+          mouseLabels: root.mouseLabels
+          mousePlacement: root.mousePlacement
           actionText: root.actionText
           actionVisible: root.actionVisible
           actionPlacement: root.actionPlacement

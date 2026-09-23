@@ -44,13 +44,14 @@ switches to Custom.*
 - Optional corner rounding (0-32 px, default 8)
 - Overlay scale (`1x` / `1.25x` / `1.5x` / `1.75x` / `2x` / custom 0.5-5)
 - Overlay font: Shell (Omarchy UI font) or any family installed on the system
+- Mouse clicks and scroll on their own settings page: which buttons, placement, linger, and an optional cursor ripple. Short labels are `LMB` and `Wheel Dn`. Full names are `Left mouse` and `Scroll down`, so they do not match the arrow keys (`Left arrow`, `Right arrow`, `Up arrow`, `Down arrow`)
 - Optional shortcut action from Hyprland bind descriptions (same source as Super+K)
 - Action placement above or below the keycaps
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold, Neon, Matrix, Vapor, Cyber, Ember, Ice) plus custom hex for background, border, and font
 - Settings panel can show a live overlay preview of a random real hotkey while open
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Left-click the bar icon to toggle the overlay
-- Right-click the bar icon for position, look, and the Hyprland bridge
+- Right-click the bar icon for Overlay, Position, Colors, Mouse, and the Hyprland bridge
 - IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`)
 
 ## Privacy
@@ -121,7 +122,14 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "colorTheme": "shell",
   "backgroundColor": "#1A1A1A",
   "borderColor": "#6E6E6E",
-  "fontColor": "#F5F5F5"
+  "fontColor": "#F5F5F5",
+  "mouseEnabled": true,
+  "mousePlacement": "inline",
+  "mouseLabelStyle": "short",
+  "mouseLingerMs": 500,
+  "mouseRipple": true,
+  "mouseRippleSize": 36,
+  "mouseRippleMs": 400
 }
 ```
 
@@ -145,6 +153,19 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `backgroundColor` | `#RRGGBB` | `#1A1A1A` |
 | `borderColor` | `#RRGGBB` | `#6E6E6E` |
 | `fontColor` | `#RRGGBB` | `#F5F5F5` |
+| `mouseEnabled` | `true` / `false` | `true` |
+| `mouseLeft` / `mouseRight` / `mouseMiddle` | `true` / `false` | `true` |
+| `mouseBack` / `mouseForward` | `true` / `false` | `false` |
+| `mouseWheelUp` / `mouseWheelDown` | `true` / `false` | `true` |
+| `mouseWheelLeft` / `mouseWheelRight` | `true` / `false` | `false` |
+| `mouseRequireKeys` | `true` / `false` | `false` |
+| `mouseRipple` | `true` / `false` | `true` |
+| `mouseRippleScroll` | `true` / `false` | `false` |
+| `mousePlacement` | `inline` / `above` / `below` | `inline` |
+| `mouseLabelStyle` | `short` (`LMB`) / `name` (`Left mouse`) | `short` |
+| `mouseLingerMs` | 0-2000 ms | `500` |
+| `mouseRippleSize` | 8-160 px | `36` |
+| `mouseRippleMs` | 100-2000 ms | `400` |
 
 CLI examples:
 
@@ -178,9 +199,9 @@ omarchy-shell local.keycast toggle
 | `Overlay.qml` | Click-through corner box on every monitor |
 | `KeycastCard.qml` | Keycap card drawn by the overlay |
 | `BarWidget.qml` | Toggle + settings panel host |
-| `Panel.qml` | Bridge setup, position, look, colors, linger, action label |
+| `Panel.qml` | Bridge setup, overlay, position, colors, and mouse pages |
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
-| `bridge.lua` | Hyprland `input.keyboard.key` observer |
+| `bridge.lua` | Hyprland keyboard observer and non-consuming mouse binds |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
 | `screenshots/` | Overlay and settings-page images for this README |
 | `README.md` | This file |

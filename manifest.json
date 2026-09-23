@@ -37,7 +37,25 @@
       "colorTheme": "shell",
       "backgroundColor": "#1A1A1A",
       "borderColor": "#6E6E6E",
-      "fontColor": "#F5F5F5"
+      "fontColor": "#F5F5F5",
+      "mouseEnabled": true,
+      "mouseLeft": true,
+      "mouseRight": true,
+      "mouseMiddle": true,
+      "mouseBack": false,
+      "mouseForward": false,
+      "mouseWheelUp": true,
+      "mouseWheelDown": true,
+      "mouseWheelLeft": false,
+      "mouseWheelRight": false,
+      "mouseRequireKeys": false,
+      "mouseRipple": true,
+      "mouseRippleScroll": false,
+      "mousePlacement": "inline",
+      "mouseLabelStyle": "short",
+      "mouseLingerMs": 500,
+      "mouseRippleSize": 36,
+      "mouseRippleMs": 400
     },
     "schema": [
       {
@@ -164,6 +182,122 @@
         "type": "string",
         "label": "Font color",
         "defaultValue": "#F5F5F5"
+      },
+      {
+        "key": "mouseEnabled",
+        "type": "boolean",
+        "label": "Show mouse",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseLeft",
+        "type": "boolean",
+        "label": "Left button",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseRight",
+        "type": "boolean",
+        "label": "Right button",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseMiddle",
+        "type": "boolean",
+        "label": "Middle button",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseBack",
+        "type": "boolean",
+        "label": "Back button",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseForward",
+        "type": "boolean",
+        "label": "Forward button",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseWheelUp",
+        "type": "boolean",
+        "label": "Scroll up",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseWheelDown",
+        "type": "boolean",
+        "label": "Scroll down",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseWheelLeft",
+        "type": "boolean",
+        "label": "Scroll left",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseWheelRight",
+        "type": "boolean",
+        "label": "Scroll right",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseRequireKeys",
+        "type": "boolean",
+        "label": "Only while a key is shown",
+        "defaultValue": false
+      },
+      {
+        "key": "mouseRipple",
+        "type": "boolean",
+        "label": "Ripple at the cursor",
+        "defaultValue": true
+      },
+      {
+        "key": "mouseRippleScroll",
+        "type": "boolean",
+        "label": "Ripple on scroll",
+        "defaultValue": false
+      },
+      {
+        "key": "mousePlacement",
+        "type": "enum",
+        "label": "Mouse placement",
+        "options": ["inline", "above", "below"],
+        "defaultValue": "inline"
+      },
+      {
+        "key": "mouseLabelStyle",
+        "type": "enum",
+        "label": "Mouse labels",
+        "options": ["short", "name"],
+        "defaultValue": "short"
+      },
+      {
+        "key": "mouseLingerMs",
+        "type": "integer",
+        "label": "Mouse linger (ms)",
+        "min": 0,
+        "max": 2000,
+        "defaultValue": 500
+      },
+      {
+        "key": "mouseRippleSize",
+        "type": "integer",
+        "label": "Ripple size (px)",
+        "min": 8,
+        "max": 160,
+        "defaultValue": 36
+      },
+      {
+        "key": "mouseRippleMs",
+        "type": "integer",
+        "label": "Ripple duration (ms)",
+        "min": 100,
+        "max": 2000,
+        "defaultValue": 400
       }
     ]
   }

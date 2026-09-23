@@ -18,6 +18,68 @@ Item {
   property color overlayFont: Color.popups.text
   property string typeface: Style.font.family
   property bool useShellColors: true
+  property var mouseLabels: []
+  property string mousePlacement: "inline"
+
+  readonly property var inlineCaps: {
+    if (mousePlacement !== "inline") return labels
+    var out = []
+    var keys = labels || []
+    var extra = mouseLabels || []
+    for (var i = 0; i < keys.length; i++) out.push(keys[i])
+    for (var j = 0; j < extra.length; j++) out.push(extra[j])
+    return out
+  }
+
+  component KeycapRow: Item {
+    id: capRoot
+    property var caps: []
+    property string align: "middle"
+    property bool framed: false
+    property color capBg: "transparent"
+    property color capBorder: "white"
+    property color capFont: "white"
+    property int capRadius: 8
+    property string capFamily: ""
+    readonly property int count: caps && caps.length ? caps.length : 0
+    implicitWidth: capRow.implicitWidth
+    implicitHeight: count > 0 ? capRow.implicitHeight : 0
+    visible: count > 0
+    width: parent ? parent.width : implicitWidth
+    height: implicitHeight
+
+    Row {
+      id: capRow
+      x: Keys.alignX(capRoot.align, implicitWidth, capRoot.width)
+      spacing: Style.space(6)
+
+      Repeater {
+        model: capRoot.count
+
+        delegate: BorderSurface {
+          required property int index
+          implicitWidth: Math.max(Style.space(32), capText.implicitWidth + Style.space(14))
+          implicitHeight: Style.space(34)
+          color: capRoot.framed
+            ? Util.alpha(capRoot.capFont, 0.10)
+            : Util.alpha(capRoot.capBg, 0.94)
+          borderSpec: Border.flat(Util.alpha(capRoot.capBorder, capRoot.framed ? 0.85 : 1), 1)
+          radius: capRoot.capRadius
+
+          Text {
+            id: capText
+            anchors.centerIn: parent
+            textFormat: Text.PlainText
+            text: capRoot.caps && capRoot.caps.length > index ? String(capRoot.caps[index] || "") : ""
+            color: capRoot.capFont
+            font.family: capRoot.capFamily
+            font.pixelSize: Style.font.title
+            font.bold: true
+          }
+        }
+      }
+    }
+  }
 
   readonly property int actionCap: Style.space(360)
   readonly property int framePadX: frameOn ? Style.space(16) : 0
@@ -27,8 +89,6 @@ Item {
     if (horizontal === "middle") return Text.AlignHCenter
     return Text.AlignLeft
   }
-  readonly property int labelCount: labels && labels.length ? labels.length : 0
-
   width: Math.max(1, stack.implicitWidth + framePadX)
   height: Math.max(1, stack.implicitHeight + framePadY)
 
@@ -45,9 +105,9 @@ Item {
   Column {
     id: stack
     anchors.centerIn: parent
-    width: Math.max(keysRow.implicitWidth, root.actionVisible
-      ? Math.min(root.actionCap, actionMetrics.implicitWidth) : 0)
-    spacing: root.actionVisible ? Style.space(6) : 0
+    width: Math.max(keysRow.implicitWidth, mouseAbove.implicitWidth, mouseBelow.implicitWidth,
+      root.actionVisible ? Math.min(root.actionCap, actionMetrics.implicitWidth) : 0)
+    spacing: Style.space(6)
 
     Text {
       id: actionMetrics
@@ -71,42 +131,43 @@ Item {
       font.pixelSize: Style.font.body
     }
 
-    Item {
+    KeycapRow {
+      id: mouseAbove
       width: parent.width
-      height: keysRow.implicitHeight
+      caps: root.mousePlacement === "above" ? root.mouseLabels : []
+      align: root.horizontal
+      framed: root.frameOn
+      capBg: root.overlayBg
+      capBorder: root.overlayBorder
+      capFont: root.overlayFont
+      capRadius: root.cornerPx
+      capFamily: root.typeface
+    }
 
-      Row {
-        id: keysRow
-        x: Keys.alignX(root.horizontal, implicitWidth, parent.width)
-        spacing: Style.space(6)
+    KeycapRow {
+      id: keysRow
+      width: parent.width
+      caps: root.mousePlacement === "inline" ? root.inlineCaps : root.labels
+      align: root.horizontal
+      framed: root.frameOn
+      capBg: root.overlayBg
+      capBorder: root.overlayBorder
+      capFont: root.overlayFont
+      capRadius: root.cornerPx
+      capFamily: root.typeface
+    }
 
-        Repeater {
-          model: root.labelCount
-
-          delegate: BorderSurface {
-            required property int index
-
-            implicitWidth: Math.max(Style.space(32), keyLabel.implicitWidth + Style.space(14))
-            implicitHeight: Style.space(34)
-            color: root.frameOn
-              ? Util.alpha(root.overlayFont, 0.10)
-              : Util.alpha(root.overlayBg, 0.94)
-            borderSpec: Border.flat(Util.alpha(root.overlayBorder, root.frameOn ? 0.85 : 1), 1)
-            radius: root.cornerPx
-
-            Text {
-              id: keyLabel
-              anchors.centerIn: parent
-              textFormat: Text.PlainText
-              text: root.labels && root.labels.length > index ? String(root.labels[index] || "") : ""
-              color: root.overlayFont
-              font.family: root.typeface
-              font.pixelSize: Style.font.title
-              font.bold: true
-            }
-          }
-        }
-      }
+    KeycapRow {
+      id: mouseBelow
+      width: parent.width
+      caps: root.mousePlacement === "below" ? root.mouseLabels : []
+      align: root.horizontal
+      framed: root.frameOn
+      capBg: root.overlayBg
+      capBorder: root.overlayBorder
+      capFont: root.overlayFont
+      capRadius: root.cornerPx
+      capFamily: root.typeface
     }
 
     Text {

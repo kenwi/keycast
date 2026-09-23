@@ -175,17 +175,28 @@ Panel {
             width: parent.width
             spacing: Style.space(10)
 
-            ButtonGroup {
+            Flow {
               width: parent.width
-              foreground: root.fg
-              fontFamily: root.fontFamily
-              value: root.settingsPage
-              options: [
-                { value: "overlay", label: "Overlay" },
-                { value: "position", label: "Position" },
-                { value: "colors", label: "Colors" }
-              ]
-              onChanged: function(value) { root.settingsPage = value }
+              spacing: Style.spacing.md
+
+              Repeater {
+                model: [
+                  { value: "overlay", label: "Overlay" },
+                  { value: "position", label: "Position" },
+                  { value: "colors", label: "Colors" },
+                  { value: "mouse", label: "Mouse" }
+                ]
+
+                delegate: Button {
+                  required property var modelData
+                  text: modelData.label
+                  selected: root.settingsPage === modelData.value
+                  bordered: true
+                  foreground: root.fg
+                  fontFamily: root.fontFamily
+                  onClicked: root.settingsPage = modelData.value
+                }
+              }
             }
 
             Column {
@@ -403,6 +414,207 @@ Panel {
                 foreground: root.fg
                 fontFamily: root.fontFamily
                 onModified: function(value) { if (root.service) root.service.setCustomScale(value) }
+              }
+            }
+
+            Column {
+              visible: root.settingsPage === "mouse"
+              width: parent.width
+              spacing: Style.space(10)
+
+              Toggle {
+                width: parent.width
+                label: "Show mouse"
+                description: "Clicks and scroll stay on screen with the keys. They still reach the window."
+                checked: root.service ? root.service.mouseEnabled !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseEnabled", !(root.service.mouseEnabled !== false))
+              }
+
+              PanelSectionHeader {
+                text: "PLACEMENT"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              ButtonGroup {
+                width: parent.width
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                value: root.service ? root.service.mousePlacement : "inline"
+                options: [
+                  { value: "inline", label: "Inline" },
+                  { value: "above", label: "Above" },
+                  { value: "below", label: "Below" }
+                ]
+                onChanged: function(value) { if (root.service) root.service.setMousePlacement(value) }
+              }
+
+              PanelSectionHeader {
+                text: "LABELS"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              ButtonGroup {
+                width: parent.width
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                value: root.service ? root.service.mouseLabelStyle : "short"
+                options: [
+                  { value: "short", label: "Short" },
+                  { value: "name", label: "Name" }
+                ]
+                onChanged: function(value) { if (root.service) root.service.setMouseLabelStyle(value) }
+              }
+
+              Toggle {
+                width: parent.width
+                label: "Only while a key is shown"
+                description: "Hide mouse labels unless a keyboard chord is on screen."
+                checked: root.service ? root.service.mouseRequireKeys === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRequireKeys", !(root.service.mouseRequireKeys === true))
+              }
+
+              NumberField {
+                width: parent.width
+                label: "Mouse linger (ms)"
+                value: root.service ? root.service.mouseLingerMs : 500
+                from: 0
+                to: 2000
+                stepSize: 50
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onModified: function(value) { if (root.service) root.service.setMouseLingerMs(value) }
+              }
+
+              PanelSectionHeader {
+                text: "BUTTONS"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              Toggle {
+                width: parent.width
+                label: "Left"
+                checked: root.service ? root.service.mouseLeft !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseLeft", !(root.service.mouseLeft !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Right"
+                checked: root.service ? root.service.mouseRight !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRight", !(root.service.mouseRight !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Middle"
+                checked: root.service ? root.service.mouseMiddle !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseMiddle", !(root.service.mouseMiddle !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Back"
+                checked: root.service ? root.service.mouseBack === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseBack", !(root.service.mouseBack === true))
+              }
+              Toggle {
+                width: parent.width
+                label: "Forward"
+                checked: root.service ? root.service.mouseForward === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseForward", !(root.service.mouseForward === true))
+              }
+
+              PanelSectionHeader {
+                text: "SCROLL"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              Toggle {
+                width: parent.width
+                label: "Scroll up"
+                checked: root.service ? root.service.mouseWheelUp !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelUp", !(root.service.mouseWheelUp !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Scroll down"
+                checked: root.service ? root.service.mouseWheelDown !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelDown", !(root.service.mouseWheelDown !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Scroll left"
+                checked: root.service ? root.service.mouseWheelLeft === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelLeft", !(root.service.mouseWheelLeft === true))
+              }
+              Toggle {
+                width: parent.width
+                label: "Scroll right"
+                checked: root.service ? root.service.mouseWheelRight === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelRight", !(root.service.mouseWheelRight === true))
+              }
+
+              PanelSectionHeader {
+                text: "RIPPLE"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              Toggle {
+                width: parent.width
+                label: "Ripple at the cursor"
+                description: "A ring where you click. Scroll ripples are separate."
+                checked: root.service ? root.service.mouseRipple !== false : true
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRipple", !(root.service.mouseRipple !== false))
+              }
+              Toggle {
+                width: parent.width
+                label: "Ripple on scroll"
+                checked: root.service ? root.service.mouseRippleScroll === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleScroll", !(root.service.mouseRippleScroll === true))
+              }
+              NumberField {
+                width: parent.width
+                label: "Ripple size (px)"
+                value: root.service ? root.service.mouseRippleSize : 36
+                from: 8
+                to: 160
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onModified: function(value) { if (root.service) root.service.setMouseRippleSize(value) }
+              }
+              NumberField {
+                width: parent.width
+                label: "Ripple duration (ms)"
+                value: root.service ? root.service.mouseRippleMs : 400
+                from: 100
+                to: 2000
+                stepSize: 50
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onModified: function(value) { if (root.service) root.service.setMouseRippleMs(value) }
               }
             }
 

@@ -3,6 +3,7 @@
 // Hyprland's input.keyboard.key callback uses XKB keycodes (Linux evdev + 8).
 var XKB_OFFSET = 8
 var PROTOCOL_PREFIX = "keycast:v1:held:"
+var POINTER_PREFIX = "keycast:v1:pointer:"
 var EMPTY_LABELS = []
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
@@ -49,6 +50,59 @@ var SCALE_STEP = 0.25
 var SCALE_CUSTOM_MIN = 0.5
 var SCALE_CUSTOM_MAX = 5
 var SCALE_PRESETS = [1, 1.25, 1.5, 1.75, 2]
+var MOUSE_PLACEMENTS = ["inline", "above", "below"]
+var MOUSE_LABEL_STYLES = ["short", "name"]
+var POINTER_ORDER = ["left", "right", "middle", "back", "forward", "wheel-up", "wheel-down", "wheel-left", "wheel-right"]
+var POINTER_FLAG = {
+  left: "mouseLeft",
+  right: "mouseRight",
+  middle: "mouseMiddle",
+  back: "mouseBack",
+  forward: "mouseForward",
+  "wheel-up": "mouseWheelUp",
+  "wheel-down": "mouseWheelDown",
+  "wheel-left": "mouseWheelLeft",
+  "wheel-right": "mouseWheelRight"
+}
+var MOUSE_FLAG_DEFAULTS = {
+  mouseEnabled: true,
+  mouseLeft: true,
+  mouseRight: true,
+  mouseMiddle: true,
+  mouseBack: false,
+  mouseForward: false,
+  mouseWheelUp: true,
+  mouseWheelDown: true,
+  mouseWheelLeft: false,
+  mouseWheelRight: false,
+  mouseRequireKeys: false,
+  mouseRipple: true,
+  mouseRippleScroll: false
+}
+var POINTER_LABELS = {
+  short: {
+    left: "LMB",
+    right: "RMB",
+    middle: "MMB",
+    back: "Back",
+    forward: "Fwd",
+    "wheel-up": "Wheel Up",
+    "wheel-down": "Wheel Dn",
+    "wheel-left": "Wheel L",
+    "wheel-right": "Wheel R"
+  },
+  name: {
+    left: "Left mouse",
+    right: "Right mouse",
+    middle: "Middle mouse",
+    back: "Back mouse",
+    forward: "Forward mouse",
+    "wheel-up": "Scroll up",
+    "wheel-down": "Scroll down",
+    "wheel-left": "Scroll left",
+    "wheel-right": "Scroll right"
+  }
+}
 var MODIFIER_ORDER = ["Super", "Ctrl", "Alt", "Shift"]
 var COMBO_MOD_ORDER = ["SUPER", "CTRL", "ALT", "SHIFT"]
 var MODMASK_SUPER = 64
@@ -102,6 +156,10 @@ var LABEL_TOKENS = {
   Right: "RIGHT",
   Up: "UP",
   Down: "DOWN",
+  "Left arrow": "LEFT",
+  "Right arrow": "RIGHT",
+  "Up arrow": "UP",
+  "Down arrow": "DOWN",
   Home: "HOME",
   End: "END",
   Insert: "INSERT",
@@ -222,12 +280,12 @@ var KEY_LABELS = {
   107: "SysRq",
   108: "Alt",
   110: "Home",
-  111: "Up",
+  111: "Up arrow",
   112: "Page Up",
-  113: "Left",
-  114: "Right",
+  113: "Left arrow",
+  114: "Right arrow",
   115: "End",
-  116: "Down",
+  116: "Down arrow",
   117: "Page Down",
   118: "Insert",
   119: "Delete",
@@ -365,6 +423,51 @@ function parseProtocol(payload) {
   var codes = parseCodes(rest)
   if (codes === null) return { ok: false, error: "codes" }
   return { ok: true, codes: codes, labels: labelsForCodes(codes) }
+}
+
+function parsePointer(payload) {
+  var text = String(payload || "")
+  if (text.indexOf(POINTER_PREFIX) !== 0) return { ok: false, error: "prefix" }
+  var rest = text.substring(POINTER_PREFIX.length)
+  var parts = rest.split(":")
+  if (parts.length < 3) return { ok: false, error: "shape" }
+  var phase = parts[0]
+  var button = parts[1]
+  if (phase !== "down" && phase !== "up" && phase !== "pulse") return { ok: false, error: "phase" }
+  if (!POINTER_FLAG[button]) return { ok: false, error: "button" }
+  var xy = parts[2].split(",")
+  if (xy.length !== 2) return { ok: false, error: "pos" }
+  var x = Number(xy[0])
+  var y = Number(xy[1])
+  if (!isFinite(x) || !isFinite(y)) return { ok: false, error: "pos" }
+  return { ok: true, phase: phase, button: button, x: x, y: y }
+}
+
+function pointerLabel(button, style) {
+  var table = POINTER_LABELS[style] || POINTER_LABELS.short
+  return table[button] || button
+}
+
+function pointerEnabled(settings, button) {
+  if (!settings || settings.mouseEnabled === false) return false
+  var key = POINTER_FLAG[button]
+  if (!key) return false
+  return settings[key] !== false
+}
+
+function mouseLabels(buttons, style, settings) {
+  var wanted = {}
+  var list = buttons || []
+  for (var i = 0; i < list.length; i++) {
+    var button = String(list[i] || "")
+    if (!pointerEnabled(settings, button)) continue
+    wanted[button] = true
+  }
+  var out = []
+  for (var j = 0; j < POINTER_ORDER.length; j++) {
+    if (wanted[POINTER_ORDER[j]]) out.push(pointerLabel(POINTER_ORDER[j], style))
+  }
+  return out
 }
 
 function hasNewLabel(previous, next) {
@@ -600,8 +703,35 @@ function normalizeSettings(entry) {
     fontFamily: normalizeFontFamily(src.fontFamily),
     backgroundColor: normalizeHex(src.backgroundColor, DEFAULT_HEX.background),
     borderColor: normalizeHex(src.borderColor, DEFAULT_HEX.border),
-    fontColor: normalizeHex(src.fontColor, DEFAULT_HEX.font)
+    fontColor: normalizeHex(src.fontColor, DEFAULT_HEX.font),
+    mouseEnabled: flagOr(src.mouseEnabled, MOUSE_FLAG_DEFAULTS.mouseEnabled),
+    mouseLeft: flagOr(src.mouseLeft, MOUSE_FLAG_DEFAULTS.mouseLeft),
+    mouseRight: flagOr(src.mouseRight, MOUSE_FLAG_DEFAULTS.mouseRight),
+    mouseMiddle: flagOr(src.mouseMiddle, MOUSE_FLAG_DEFAULTS.mouseMiddle),
+    mouseBack: flagOr(src.mouseBack, MOUSE_FLAG_DEFAULTS.mouseBack),
+    mouseForward: flagOr(src.mouseForward, MOUSE_FLAG_DEFAULTS.mouseForward),
+    mouseWheelUp: flagOr(src.mouseWheelUp, MOUSE_FLAG_DEFAULTS.mouseWheelUp),
+    mouseWheelDown: flagOr(src.mouseWheelDown, MOUSE_FLAG_DEFAULTS.mouseWheelDown),
+    mouseWheelLeft: flagOr(src.mouseWheelLeft, MOUSE_FLAG_DEFAULTS.mouseWheelLeft),
+    mouseWheelRight: flagOr(src.mouseWheelRight, MOUSE_FLAG_DEFAULTS.mouseWheelRight),
+    mouseRequireKeys: flagOr(src.mouseRequireKeys, MOUSE_FLAG_DEFAULTS.mouseRequireKeys),
+    mouseRipple: flagOr(src.mouseRipple, MOUSE_FLAG_DEFAULTS.mouseRipple),
+    mouseRippleScroll: flagOr(src.mouseRippleScroll, MOUSE_FLAG_DEFAULTS.mouseRippleScroll),
+    mousePlacement: pickChoice(src.mousePlacement, MOUSE_PLACEMENTS, "inline"),
+    mouseLabelStyle: pickChoice(src.mouseLabelStyle, MOUSE_LABEL_STYLES, "short"),
+    mouseLingerMs: clampInt(src.mouseLingerMs, 0, 2000, 500),
+    mouseRippleSize: clampInt(src.mouseRippleSize, 8, 160, 36),
+    mouseRippleMs: clampInt(src.mouseRippleMs, 100, 2000, 400)
   }
+}
+
+function flagOr(value, fallback) {
+  if (value === undefined || value === null || value === "") return fallback
+  return isEnabledFlag(value)
+}
+
+function isMouseFlag(key) {
+  return MOUSE_FLAG_DEFAULTS[String(key || "")] !== undefined
 }
 
 function axisPosition(edge, endEdge, size, parentSize, padding) {
@@ -749,6 +879,11 @@ if (typeof module !== "undefined") {
     labelFor: labelFor,
     labelsForCodes: labelsForCodes,
     parseProtocol: parseProtocol,
+    parsePointer: parsePointer,
+    pointerLabel: pointerLabel,
+    pointerEnabled: pointerEnabled,
+    mouseLabels: mouseLabels,
+    isMouseFlag: isMouseFlag,
     displayedAfterHeld: displayedAfterHeld,
     comboFromLabels: comboFromLabels,
     parseBinds: parseBinds,

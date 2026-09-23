@@ -32,6 +32,29 @@ Item {
   property string backgroundColor: "#1A1A1A"
   property string borderColor: "#6E6E6E"
   property string fontColor: "#F5F5F5"
+  property bool mouseEnabled: true
+  property bool mouseLeft: true
+  property bool mouseRight: true
+  property bool mouseMiddle: true
+  property bool mouseBack: false
+  property bool mouseForward: false
+  property bool mouseWheelUp: true
+  property bool mouseWheelDown: true
+  property bool mouseWheelLeft: false
+  property bool mouseWheelRight: false
+  property bool mouseRequireKeys: false
+  property bool mouseRipple: true
+  property bool mouseRippleScroll: false
+  property string mousePlacement: "inline"
+  property string mouseLabelStyle: "short"
+  property int mouseLingerMs: 500
+  property int mouseRippleSize: 36
+  property int mouseRippleMs: 400
+  property var pointerHeld: []
+  property string pointerPulse: ""
+  property var displayedPointerButtons: []
+  property var pointerRipples: []
+  property int rippleSerial: 0
   readonly property bool useShellColors: colorTheme === "shell"
   readonly property string displayBackgroundColor: useShellColors
     ? Keys.colorToHex(Color.background, backgroundColor) : backgroundColor
@@ -57,6 +80,29 @@ Item {
   property string previewAction: ""
   property int previewEpoch: 0
   readonly property var overlayLabels: Keys.overlayLabels(displayedKeys, previewActive, previewKeys)
+  readonly property var displayedMouseLabels: {
+    if (mouseRequireKeys && (!overlayLabels || overlayLabels.length === 0)) return []
+    return Keys.mouseLabels(displayedPointerButtons, mouseLabelStyle, mouseSettings())
+  }
+
+  function mouseSettings() {
+    return {
+      mouseEnabled: mouseEnabled,
+      mouseLeft: mouseLeft,
+      mouseRight: mouseRight,
+      mouseMiddle: mouseMiddle,
+      mouseBack: mouseBack,
+      mouseForward: mouseForward,
+      mouseWheelUp: mouseWheelUp,
+      mouseWheelDown: mouseWheelDown,
+      mouseWheelLeft: mouseWheelLeft,
+      mouseWheelRight: mouseWheelRight
+    }
+  }
+
+  function displayLive() {
+    return overlayEnabled || previewActive
+  }
   readonly property string displayedAction: {
     if (!actionEnabled) return ""
     if (displayedKeys && displayedKeys.length > 0)
@@ -110,6 +156,24 @@ Item {
     backgroundColor = next.backgroundColor
     borderColor = next.borderColor
     fontColor = next.fontColor
+    mouseEnabled = next.mouseEnabled
+    mouseLeft = next.mouseLeft
+    mouseRight = next.mouseRight
+    mouseMiddle = next.mouseMiddle
+    mouseBack = next.mouseBack
+    mouseForward = next.mouseForward
+    mouseWheelUp = next.mouseWheelUp
+    mouseWheelDown = next.mouseWheelDown
+    mouseWheelLeft = next.mouseWheelLeft
+    mouseWheelRight = next.mouseWheelRight
+    mouseRequireKeys = next.mouseRequireKeys
+    mouseRipple = next.mouseRipple
+    mouseRippleScroll = next.mouseRippleScroll
+    mousePlacement = next.mousePlacement
+    mouseLabelStyle = next.mouseLabelStyle
+    mouseLingerMs = next.mouseLingerMs
+    mouseRippleSize = next.mouseRippleSize
+    mouseRippleMs = next.mouseRippleMs
     if (colorsChanged) colorEpoch += 1
     lingerTimer.interval = Math.max(1, next.lingerMs)
     if (!previewEnabled && previewActive) setPreviewActive(false)
@@ -119,6 +183,10 @@ Item {
     } else if (heldKeys.length > 0) {
       displayedKeys = heldKeys
     }
+    if (!displayLive() || !mouseEnabled) {
+      clearPointerDisplay()
+      pointerHeld = []
+    } else publishPointer()
   }
 
   function persistSettings(changes) {
@@ -141,7 +209,25 @@ Item {
       fontFamily: fontFamily,
       backgroundColor: backgroundColor,
       borderColor: borderColor,
-      fontColor: fontColor
+      fontColor: fontColor,
+      mouseEnabled: mouseEnabled,
+      mouseLeft: mouseLeft,
+      mouseRight: mouseRight,
+      mouseMiddle: mouseMiddle,
+      mouseBack: mouseBack,
+      mouseForward: mouseForward,
+      mouseWheelUp: mouseWheelUp,
+      mouseWheelDown: mouseWheelDown,
+      mouseWheelLeft: mouseWheelLeft,
+      mouseWheelRight: mouseWheelRight,
+      mouseRequireKeys: mouseRequireKeys,
+      mouseRipple: mouseRipple,
+      mouseRippleScroll: mouseRippleScroll,
+      mousePlacement: mousePlacement,
+      mouseLabelStyle: mouseLabelStyle,
+      mouseLingerMs: mouseLingerMs,
+      mouseRippleSize: mouseRippleSize,
+      mouseRippleMs: mouseRippleMs
     }
     for (var changed in changes) next[changed] = changes[changed]
     applySettings(next)
@@ -306,9 +392,124 @@ Item {
       if (!overlayEnabled) {
         lingerTimer.stop()
         displayedKeys = []
+        clearPointerDisplay()
       }
     }
+    publishPointer()
     return next
+  }
+
+  function withoutButton(list, button) {
+    var out = []
+    var src = list || []
+    for (var i = 0; i < src.length; i++) {
+      if (src[i] !== button) out.push(src[i])
+    }
+    return out
+  }
+
+  function clearPointerDisplay() {
+    pointerPulse = ""
+    displayedPointerButtons = []
+    pointerRipples = []
+    mouseLinger.stop()
+  }
+
+  function publishPointer() {
+    if (!displayLive() || !mouseEnabled) {
+      displayedPointerButtons = []
+      return
+    }
+    var buttons = pointerHeld.slice()
+    if (pointerPulse) buttons.push(pointerPulse)
+    displayedPointerButtons = buttons
+  }
+
+  function armMouseLinger() {
+    if (!displayLive() || mouseLingerMs <= 0) {
+      pointerPulse = ""
+      if (pointerHeld.length === 0) displayedPointerButtons = []
+      else publishPointer()
+      return
+    }
+    mouseLinger.interval = Math.max(1, mouseLingerMs)
+    mouseLinger.restart()
+  }
+
+  function pushRipple(parsed) {
+    var next = pointerRipples.slice()
+    next.push({
+      id: ++rippleSerial,
+      x: parsed.x,
+      y: parsed.y,
+      born: Date.now()
+    })
+    if (next.length > 8) next = next.slice(next.length - 8)
+    pointerRipples = next
+  }
+
+  function handlePointer(parsed) {
+    bridgeLive = true
+    if (!displayLive()) return
+    if (!Keys.pointerEnabled(mouseSettings(), parsed.button)) return
+    if (parsed.phase === "down") {
+      if (pointerHeld.indexOf(parsed.button) === -1)
+        pointerHeld = pointerHeld.concat([parsed.button])
+      pointerPulse = ""
+      mouseLinger.stop()
+      publishPointer()
+      if (mouseRipple) pushRipple(parsed)
+    } else if (parsed.phase === "up") {
+      pointerHeld = withoutButton(pointerHeld, parsed.button)
+      if (pointerHeld.length === 0) armMouseLinger()
+      else publishPointer()
+    } else if (parsed.phase === "pulse") {
+      pointerPulse = parsed.button
+      publishPointer()
+      armMouseLinger()
+      if (mouseRipple && mouseRippleScroll) pushRipple(parsed)
+    }
+  }
+
+  function setMouseFlag(key, value) {
+    if (!Keys.isMouseFlag(key)) return false
+    var patch = {}
+    patch[key] = value
+    var next = Keys.normalizeSettings(patch)[key]
+    if (next === root[key]) return false
+    var changes = {}
+    changes[key] = next
+    return persistSettings(changes)
+  }
+
+  function setMousePlacement(value) {
+    var next = Keys.normalizeSettings({ mousePlacement: value }).mousePlacement
+    if (next === mousePlacement) return false
+    return persistSettings({ mousePlacement: next })
+  }
+
+  function setMouseLabelStyle(value) {
+    var next = Keys.normalizeSettings({ mouseLabelStyle: value }).mouseLabelStyle
+    if (next === mouseLabelStyle) return false
+    return persistSettings({ mouseLabelStyle: next })
+  }
+
+  function setMouseLingerMs(value) {
+    var next = Keys.normalizeSettings({ mouseLingerMs: value }).mouseLingerMs
+    if (next === mouseLingerMs) return false
+    return persistSettings({ mouseLingerMs: next })
+  }
+
+  function setMouseRippleSize(value) {
+    var next = Keys.normalizeSettings({ mouseRippleSize: value }).mouseRippleSize
+    if (next === mouseRippleSize) return false
+    return persistSettings({ mouseRippleSize: next })
+  }
+
+  function setMouseRippleMs(value) {
+    var next = Keys.normalizeSettings({ mouseRippleMs: value }).mouseRippleMs
+    if (next === mouseRippleMs) return false
+    return persistSettings({ mouseRippleMs: next })
   }
 
   function applyHeldLabels(labels) {
@@ -333,7 +534,14 @@ Item {
   }
 
   function handleProtocolEvent(payload) {
-    var parsed = Keys.parseProtocol(payload)
+    var text = String(payload || "")
+    if (text.indexOf("keycast:v1:pointer:") === 0) {
+      var pointer = Keys.parsePointer(text)
+      if (!pointer.ok) return false
+      handlePointer(pointer)
+      return true
+    }
+    var parsed = Keys.parseProtocol(text)
     if (!parsed.ok) return false
     bridgeLive = true
     applyHeldLabels(parsed.labels)
@@ -402,6 +610,8 @@ Item {
   function disableBridge() {
     setOverlayEnabled(false)
     applyHeldLabels([])
+    clearPointerDisplay()
+    pointerHeld = []
     return mutateBridge("disable")
   }
 
@@ -411,6 +621,33 @@ Item {
     repeat: false
     onTriggered: {
       if (root.heldKeys.length === 0) root.displayedKeys = []
+    }
+  }
+
+  Timer {
+    id: mouseLinger
+    interval: 500
+    repeat: false
+    onTriggered: {
+      root.pointerPulse = ""
+      if (root.pointerHeld.length === 0) root.displayedPointerButtons = []
+      else root.publishPointer()
+    }
+  }
+
+  Timer {
+    interval: 50
+    repeat: true
+    running: root.pointerRipples.length > 0
+    onTriggered: {
+      var now = Date.now()
+      var life = Math.max(100, root.mouseRippleMs)
+      var keep = []
+      var list = root.pointerRipples
+      for (var i = 0; i < list.length; i++) {
+        if (now - list[i].born < life) keep.push(list[i])
+      }
+      if (keep.length !== list.length) root.pointerRipples = keep
     }
   }
 
