@@ -6,6 +6,12 @@ The overlay is a click-through box of keycaps. It defaults to the bottom
 center, without an outer box. Position, padding, scale, outer box, corner
 rounding, colors, and an optional shortcut action label are configurable.
 
+![Keycast demo](screenshots/demo.gif)
+
+*Demo - held keys on the overlay (Super+Enter opens a terminal), then the
+settings panel: shortcut action, mouse labels beside the chord, position and
+custom scale, a color theme, and a click ripple.*
+
 ![Key overlay](screenshots/overlay.png)
 
 *Overlay - currently held keys as keycaps, with the Hyprland bind description
@@ -205,7 +211,7 @@ omarchy-shell local.keycast toggle
 | `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
 | `bridge.lua` | Hyprland keyboard observer and non-consuming mouse binds |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
-| `screenshots/` | Overlay and settings-page images for this README |
+| `screenshots/` | Demo GIF and settings-page images for this README |
 | `README.md` | This file |
 
 ## Tests
