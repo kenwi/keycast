@@ -56,6 +56,7 @@ switches to Custom.*
 - Color themes (Shell, Dark, Light, Contrast, Nord, Mocha, Gold, Neon, Matrix, Vapor, Cyber, Ember, Ice) plus custom hex for background, border, and font
 - Settings panel can show a live overlay preview of a random real hotkey while open
 - Short linger after release (default 600 ms) so quick taps stay visible on video
+- Optional show while recording: the overlay follows Omarchy's screen recorder (`gpu-screen-recorder`). It turns off when the take ends only if Keycast turned it on. A manual overlay stays as you left it
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for Overlay, Position, Colors, Mouse, and the Hyprland bridge
 - IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`)
@@ -112,6 +113,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 {
   "id": "local.keycast",
   "overlayEnabled": false,
+  "showWhileRecording": false,
   "frameEnabled": false,
   "roundingEnabled": true,
   "rounding": 8,
@@ -142,6 +144,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | Key | Values | Default |
 |-----|--------|---------|
 | `overlayEnabled` | `true` / `false` | `false` |
+| `showWhileRecording` | `true` / `false` | `false` |
 | `frameEnabled` | `true` / `false` | `false` |
 | `roundingEnabled` | `true` / `false` | `true` |
 | `rounding` | 0-32 px | `8` |

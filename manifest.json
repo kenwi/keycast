@@ -21,6 +21,7 @@
     "defaultSection": "right",
     "defaults": {
       "overlayEnabled": false,
+      "showWhileRecording": false,
       "frameEnabled": false,
       "roundingEnabled": true,
       "rounding": 8,
@@ -64,6 +65,12 @@
         "key": "overlayEnabled",
         "type": "boolean",
         "label": "Show pressed keys",
+        "defaultValue": false
+      },
+      {
+        "key": "showWhileRecording",
+        "type": "boolean",
+        "label": "Show while recording",
         "defaultValue": false
       },
       {

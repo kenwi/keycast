@@ -13,6 +13,9 @@ Item {
   property var manifest: null
 
   property bool overlayEnabled: false
+  property bool showWhileRecording: false
+  property bool captureRecording: false
+  property bool openedForRecording: false
   property bool frameEnabled: false
   property bool roundingEnabled: true
   property int rounding: 8
@@ -142,6 +145,8 @@ Item {
       || borderColor !== next.borderColor
       || fontColor !== next.fontColor
     overlayEnabled = next.overlayEnabled
+    showWhileRecording = next.showWhileRecording
+    if (!showWhileRecording) openedForRecording = false
     frameEnabled = next.frameEnabled
     roundingEnabled = next.roundingEnabled
     rounding = next.rounding
@@ -198,6 +203,7 @@ Item {
     var next = {
       id: root.moduleName,
       overlayEnabled: overlayEnabled,
+      showWhileRecording: showWhileRecording,
       frameEnabled: frameEnabled,
       roundingEnabled: roundingEnabled,
       rounding: rounding,
@@ -242,10 +248,48 @@ Item {
     return root.shell.updateEntryInline(root.moduleName, next)
   }
 
-  function setOverlayEnabled(value) {
+  function applyOverlayEnabled(value) {
     var next = Keys.isEnabledFlag(value)
     if (next === overlayEnabled) return false
     return persistSettings({ overlayEnabled: next })
+  }
+
+  function setOverlayEnabled(value) {
+    openedForRecording = false
+    return applyOverlayEnabled(value)
+  }
+
+  function setShowWhileRecording(value) {
+    var next = Keys.normalizeSettings({ showWhileRecording: value }).showWhileRecording
+    if (next === showWhileRecording) return false
+    if (!next) openedForRecording = false
+    var saved = persistSettings({ showWhileRecording: next })
+    if (next) {
+      captureRecording = false
+      pollCapture()
+    }
+    return saved
+  }
+
+  function pollCapture() {
+    if (!showWhileRecording || captureProbe.running) return
+    captureProbe.running = true
+  }
+
+  function syncCaptureRecording(active) {
+    var next = active === true
+    if (next === captureRecording) return
+    captureRecording = next
+    if (!showWhileRecording) return
+    if (next) {
+      if (!overlayEnabled) {
+        openedForRecording = true
+        applyOverlayEnabled(true)
+      }
+    } else if (openedForRecording) {
+      openedForRecording = false
+      applyOverlayEnabled(false)
+    }
   }
 
   function setFrameEnabled(value) {
@@ -738,6 +782,24 @@ Item {
       root.applyInspectResult(mutateStdout.text, exitCode)
       if (exitCode === 0 && action === "enable") root.setOverlayEnabled(true)
       if (exitCode === 0) Qt.callLater(root.inspectBridge)
+    }
+  }
+
+  Timer {
+    interval: 250
+    repeat: true
+    running: root.showWhileRecording
+    triggeredOnStart: true
+    onTriggered: root.pollCapture()
+  }
+
+  Process {
+    id: captureProbe
+    running: false
+    command: ["pgrep", "--quiet", "-f", "^gpu-screen-recorder"]
+    onExited: function(exitCode) {
+      if (!root.showWhileRecording) return
+      root.syncCaptureRecording(exitCode === 0)
     }
   }
 

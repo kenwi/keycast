@@ -216,6 +216,16 @@ Panel {
 
               Toggle {
                 width: parent.width
+                label: "Show while recording"
+                description: "Turn the overlay on with Omarchy's screen recorder, and off again when that take ends."
+                checked: root.service ? root.service.showWhileRecording === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setShowWhileRecording(!(root.service.showWhileRecording === true))
+              }
+
+              Toggle {
+                width: parent.width
                 label: "Preview keypress"
                 description: "Show a sample hotkey on the overlay while this panel is open."
                 checked: root.previewSettingOn

@@ -42,6 +42,8 @@ assert(settings.lingerMs === 1200, "linger")
 
 const defaults = Keys.normalizeSettings({})
 assert(defaults.overlayEnabled === false, "overlay default")
+assert(defaults.showWhileRecording === false, "record with capture default")
+assert(Keys.normalizeSettings({ showWhileRecording: true }).showWhileRecording === true, "record with capture on")
 assert(defaults.frameEnabled === false, "frame default")
 assert(defaults.roundingEnabled === true, "rounding default")
 assert(defaults.rounding === 8, "rounding px default")

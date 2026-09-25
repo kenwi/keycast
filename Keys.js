@@ -685,6 +685,7 @@ function normalizeSettings(entry) {
   if (!scaleCustom && !isScalePreset(scale)) scaleCustom = true
   return {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
+    showWhileRecording: flagOr(src.showWhileRecording, false),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
       ? false : isEnabledFlag(frameRaw),
     roundingEnabled: src.roundingEnabled === undefined || src.roundingEnabled === null || src.roundingEnabled === ""
