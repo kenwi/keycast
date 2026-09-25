@@ -165,8 +165,9 @@ if not bridge.pointerBound then
 end
 
 -- While a button is held, report cursor motion so the shell can slide the
--- ripple. Held state comes from our own binds. is_key_down does not accept
--- mouse buttons and raises on every poll.
+-- ripple. This is the fastest rate the Mouse page offers. The shell drops
+-- updates to match the follow rate. Held state comes from our own binds.
+-- is_key_down does not accept mouse buttons and raises on every poll.
 if bridge.dragTimer and type(bridge.dragTimer.set_enabled) == "function" then
   pcall(function() bridge.dragTimer:set_enabled(false) end)
 end
@@ -184,5 +185,5 @@ if type(hl.timer) == "function" then
         bridge.last_move[item.id] = nil
       end
     end
-  end, { timeout = 50, type = "repeat" })
+  end, { timeout = 8, type = "repeat" })
 end

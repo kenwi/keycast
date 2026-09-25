@@ -49,6 +49,9 @@ Item {
   property bool mouseRipple: true
   property bool mouseRippleScroll: false
   property bool mouseRippleFollow: false
+  property int mouseRippleFollowMs: 16
+  property var pendingRippleMove: null
+  property real lastRippleMoveAt: 0
   property bool mouseRippleFade: false
   property int rippleTick: 0
   property string mousePlacement: "inline"
@@ -178,6 +181,7 @@ Item {
     mouseRipple = next.mouseRipple
     mouseRippleScroll = next.mouseRippleScroll
     mouseRippleFollow = next.mouseRippleFollow
+    mouseRippleFollowMs = next.mouseRippleFollowMs
     mouseRippleFade = next.mouseRippleFade
     mousePlacement = next.mousePlacement
     mouseLabelStyle = next.mouseLabelStyle
@@ -235,6 +239,7 @@ Item {
       mouseRipple: mouseRipple,
       mouseRippleScroll: mouseRippleScroll,
       mouseRippleFollow: mouseRippleFollow,
+      mouseRippleFollowMs: mouseRippleFollowMs,
       mouseRippleFade: mouseRippleFade,
       mousePlacement: mousePlacement,
       mouseLabelStyle: mouseLabelStyle,
@@ -463,6 +468,8 @@ Item {
     pointerPulse = ""
     displayedPointerButtons = []
     pointerRipples = []
+    pendingRippleMove = null
+    rippleFollowTimer.stop()
     mouseLinger.stop()
   }
 
@@ -520,7 +527,7 @@ Item {
     if (changed) pointerRipples = next
   }
 
-  function moveRipple(parsed) {
+  function placeRipple(parsed) {
     var next = pointerRipples.slice()
     var found = -1
     for (var i = next.length - 1; i >= 0; i--) {
@@ -543,6 +550,31 @@ Item {
     pointerRipples = next
   }
 
+  function moveRipple(parsed) {
+    var gap = Math.max(8, mouseRippleFollowMs)
+    var now = Date.now()
+    if (lastRippleMoveAt <= 0 || now - lastRippleMoveAt >= gap) {
+      lastRippleMoveAt = now
+      pendingRippleMove = null
+      rippleFollowTimer.stop()
+      placeRipple(parsed)
+      return
+    }
+    pendingRippleMove = parsed
+    if (!rippleFollowTimer.running) {
+      rippleFollowTimer.interval = Math.max(1, gap - (now - lastRippleMoveAt))
+      rippleFollowTimer.restart()
+    }
+  }
+
+  function flushRippleMove() {
+    var pending = pendingRippleMove
+    pendingRippleMove = null
+    if (!pending || !mouseRipple || !mouseRippleFollow) return
+    lastRippleMoveAt = Date.now()
+    placeRipple(pending)
+  }
+
   function handlePointer(parsed) {
     bridgeLive = true
     if (!displayLive()) return
@@ -559,6 +591,7 @@ Item {
       }
     } else if (parsed.phase === "up") {
       pointerHeld = withoutButton(pointerHeld, parsed.button)
+      flushRippleMove()
       releaseRipple(parsed.button)
       if (pointerHeld.length === 0) armMouseLinger()
       else publishPointer()
@@ -605,6 +638,12 @@ Item {
     var next = Keys.normalizeSettings({ mouseRippleSize: value }).mouseRippleSize
     if (next === mouseRippleSize) return false
     return persistSettings({ mouseRippleSize: next })
+  }
+
+  function setMouseRippleFollowMs(value) {
+    var next = Keys.normalizeSettings({ mouseRippleFollowMs: value }).mouseRippleFollowMs
+    if (next === mouseRippleFollowMs) return false
+    return persistSettings({ mouseRippleFollowMs: next })
   }
 
   function setMouseRippleMs(value) {
@@ -734,6 +773,13 @@ Item {
       if (root.pointerHeld.length === 0) root.displayedPointerButtons = []
       else root.publishPointer()
     }
+  }
+
+  Timer {
+    id: rippleFollowTimer
+    interval: 16
+    repeat: false
+    onTriggered: root.flushRippleMove()
   }
 
   Timer {

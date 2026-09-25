@@ -171,6 +171,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `mouseRipple` | `true` / `false` | `true` |
 | `mouseRippleScroll` | `true` / `false` | `false` |
 | `mouseRippleFollow` | `true` / `false` | `false` |
+| `mouseRippleFollowMs` | 8-64 ms | `16` |
 | `mouseRippleFade` | `true` / `false` | `false` |
 | `mousePlacement` | `inline` / `above` / `below` | `inline` |
 | `mouseLabelStyle` | `short` (`LMB`) / `name` (`Left mouse`) | `short` |

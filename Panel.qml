@@ -608,11 +608,22 @@ Panel {
               Toggle {
                 width: parent.width
                 label: "Follow a drag"
-                description: "Move the click ripple with the cursor while the button is held."
+                description: "Move the click ripple with the cursor while the button is held. Follow rate is how often it catches up. Lower is smoother."
                 checked: root.service ? root.service.mouseRippleFollow === true : false
                 foreground: root.fg
                 fontFamily: root.fontFamily
                 onClicked: if (root.service) root.service.setMouseFlag("mouseRippleFollow", !(root.service.mouseRippleFollow === true))
+              }
+              NumberField {
+                width: parent.width
+                label: "Follow rate (ms)"
+                value: root.service ? root.service.mouseRippleFollowMs : 16
+                from: 8
+                to: 64
+                stepSize: 8
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onModified: function(value) { if (root.service) root.service.setMouseRippleFollowMs(value) }
               }
               NumberField {
                 width: parent.width

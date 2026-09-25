@@ -94,7 +94,7 @@ wheel()
 assert(payloads[#payloads] == "keycast:v1:pointer:pulse:wheel-down:10,20", "wheel payload")
 
 local drag = timers[#timers]
-assert(drag.opts.timeout == 50 and drag.opts.type == "repeat", "drag poll interval")
+assert(drag.opts.timeout == 8 and drag.opts.type == "repeat", "drag poll interval")
 local before_move = #payloads
 drag.fn()
 assert(#payloads == before_move, "no move while buttons are up")

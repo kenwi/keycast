@@ -53,6 +53,7 @@
       "mouseRipple": true,
       "mouseRippleScroll": false,
       "mouseRippleFollow": false,
+      "mouseRippleFollowMs": 16,
       "mouseRippleFade": false,
       "mousePlacement": "inline",
       "mouseLabelStyle": "short",
@@ -275,6 +276,14 @@
         "type": "boolean",
         "label": "Follow a drag",
         "defaultValue": false
+      },
+      {
+        "key": "mouseRippleFollowMs",
+        "type": "integer",
+        "label": "Follow rate (ms)",
+        "min": 8,
+        "max": 64,
+        "defaultValue": 16
       },
       {
         "key": "mouseRippleFade",

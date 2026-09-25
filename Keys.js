@@ -726,7 +726,8 @@ function normalizeSettings(entry) {
     mouseLabelStyle: pickChoice(src.mouseLabelStyle, MOUSE_LABEL_STYLES, "short"),
     mouseLingerMs: clampInt(src.mouseLingerMs, 0, 2000, 500),
     mouseRippleSize: clampInt(src.mouseRippleSize, 8, 160, 36),
-    mouseRippleMs: clampInt(src.mouseRippleMs, 100, 2000, 400)
+    mouseRippleMs: clampInt(src.mouseRippleMs, 100, 2000, 400),
+    mouseRippleFollowMs: clampInt(src.mouseRippleFollowMs, 8, 64, 16)
   }
 }
 
