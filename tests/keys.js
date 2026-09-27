@@ -17,6 +17,24 @@ assert(Keys.labelsForCodes([37, 50, 38]).join(",") === "Ctrl,Shift,A", "chord or
 assert(Keys.labelsForCodes([105, 37]).join(",") === "Ctrl", "duplicate ctrl")
 assert(Keys.labelsForCodes([133, 36]).join(",") === "Super,Enter", "super enter")
 
+const typedMap = {
+  "10": ["1", "!", "¡", "¹"],
+  "11": ["2", "\"", "@", "²"],
+  "38": ["a", "A", "ª", "º"],
+  "111": ["", "", "", ""]
+}
+assert(Keys.typedChord([50, 10], typedMap, false).join(",") === "!", "typed shift 1")
+assert(Keys.typedChord([10], typedMap, false).join(",") === "1", "typed 1")
+assert(Keys.typedChord([38], typedMap, false).join(",") === "a", "typed a")
+assert(Keys.typedChord([50, 38], typedMap, false).join(",") === "A", "typed shift a")
+assert(Keys.typedChord([38], typedMap, true).join(",") === "A", "typed caps a")
+assert(Keys.typedChord([50, 38], typedMap, true).join(",") === "a", "typed caps shift a")
+assert(Keys.typedChord([108, 11], typedMap, false).join(",") === "@", "typed altgr 2")
+assert(Keys.typedChord([133, 38], typedMap, false) === null, "typed super stays a chord")
+assert(Keys.typedChord([64, 38], typedMap, false) === null, "typed left alt stays a chord")
+assert(Keys.typedChord([50, 111], typedMap, false) === null, "typed shift arrow stays a chord")
+assert(Keys.typedChord([50], typedMap, false) === null, "typed shift alone")
+
 const empty = Keys.parseProtocol("keycast:v1:held:")
 assert(empty.ok && empty.labels.length === 0, "empty snapshot")
 

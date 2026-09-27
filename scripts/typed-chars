@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Print the active layout's typed characters for Keycast.
+
+One JSON object on stdout: caps lock, plus keycode to four levels
+(base, shift, AltGr, AltGr+shift). Empty strings are not typed glyphs.
+"""
+
+import ctypes
+import json
+import subprocess
+import sys
+
+XKB_CONTEXT_NO_FLAGS = 0
+XKB_KEYMAP_COMPILE_NO_FLAGS = 0
+
+
+class Names(ctypes.Structure):
+    _fields_ = [
+        ("rules", ctypes.c_char_p),
+        ("model", ctypes.c_char_p),
+        ("layout", ctypes.c_char_p),
+        ("variant", ctypes.c_char_p),
+        ("options", ctypes.c_char_p),
+    ]
+
+
+def main_keyboard():
+    raw = subprocess.check_output(["hyprctl", "devices", "-j"], text=True)
+    boards = json.loads(raw).get("keyboards") or []
+    for board in boards:
+        if board.get("main"):
+            return board
+    return boards[0] if boards else {}
+
+
+def piece(value, index):
+    parts = [item.strip() for item in str(value or "").split(",")]
+    if not parts or parts == [""]:
+        return ""
+    if index < 0 or index >= len(parts):
+        return parts[0]
+    return parts[index]
+
+
+def visible(text):
+    if not text or text.isspace():
+        return ""
+    if any(ord(ch) < 32 for ch in text):
+        return ""
+    return text
+
+
+def characters(keymap, keycode, get_syms, to_utf8, buf):
+    levels = []
+    for level in range(4):
+        syms = ctypes.POINTER(ctypes.c_uint32)()
+        count = get_syms(keymap, keycode, 0, level, ctypes.byref(syms))
+        glyph = ""
+        if count >= 1:
+            to_utf8(syms[0], buf, len(buf))
+            glyph = visible(buf.value.decode(errors="replace"))
+        levels.append(glyph)
+    return levels
+
+
+def main():
+    board = main_keyboard()
+    index = int(board.get("active_layout_index") or 0)
+    layout = piece(board.get("layout"), index) or "us"
+    variant = piece(board.get("variant"), index)
+    rules = str(board.get("rules") or "evdev")
+    model = str(board.get("model") or "pc105")
+    options = str(board.get("options") or "")
+
+    lib = ctypes.CDLL("libxkbcommon.so.0")
+    lib.xkb_context_new.restype = ctypes.c_void_p
+    lib.xkb_keymap_new_from_names.restype = ctypes.c_void_p
+    lib.xkb_keymap_new_from_names.argtypes = [
+        ctypes.c_void_p, ctypes.POINTER(Names), ctypes.c_uint32
+    ]
+    lib.xkb_keymap_key_get_syms_by_level.restype = ctypes.c_int
+    lib.xkb_keymap_key_get_syms_by_level.argtypes = [
+        ctypes.c_void_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32,
+        ctypes.POINTER(ctypes.POINTER(ctypes.c_uint32)),
+    ]
+    lib.xkb_keysym_to_utf8.restype = ctypes.c_int
+    lib.xkb_keysym_to_utf8.argtypes = [ctypes.c_uint32, ctypes.c_char_p, ctypes.c_size_t]
+    lib.xkb_keymap_unref.argtypes = [ctypes.c_void_p]
+    lib.xkb_context_unref.argtypes = [ctypes.c_void_p]
+
+    ctx = lib.xkb_context_new(XKB_CONTEXT_NO_FLAGS)
+    names = Names(
+        rules.encode(),
+        model.encode(),
+        layout.encode(),
+        variant.encode() if variant else None,
+        options.encode() if options else None,
+    )
+    keymap = lib.xkb_keymap_new_from_names(ctx, ctypes.byref(names), XKB_KEYMAP_COMPILE_NO_FLAGS)
+    chars = {}
+    if keymap:
+        buf = ctypes.create_string_buffer(16)
+        for code in range(8, 256):
+            levels = characters(keymap, code, lib.xkb_keymap_key_get_syms_by_level, lib.xkb_keysym_to_utf8, buf)
+            if any(levels):
+                chars[str(code)] = levels
+        lib.xkb_keymap_unref(keymap)
+    if ctx:
+        lib.xkb_context_unref(ctx)
+
+    json.dump({"caps": board.get("capsLock") is True, "chars": chars}, sys.stdout)
+    sys.stdout.write("\n")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        json.dump({"caps": False, "chars": {}}, sys.stdout)
+        sys.stdout.write("\n")

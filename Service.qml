@@ -14,6 +14,11 @@ Item {
 
   property bool overlayEnabled: false
   property bool showWhileRecording: false
+  property bool showTyped: false
+  property bool typedCaps: false
+  property var typedTable: ({})
+  property var displayedCodes: []
+  property var heldCodes: []
   property bool captureRecording: false
   property bool openedForRecording: false
   property bool frameEnabled: false
@@ -88,7 +93,14 @@ Item {
   property var previewKeys: []
   property string previewAction: ""
   property int previewEpoch: 0
-  readonly property var overlayLabels: Keys.overlayLabels(displayedKeys, previewActive, previewKeys)
+  readonly property var overlayLabels: {
+    var names = Keys.overlayLabels(displayedKeys, previewActive, previewKeys)
+    if (showTyped !== true) return names
+    if (!displayedKeys || displayedKeys.length === 0) return names
+    var typed = Keys.typedChord(displayedCodes, typedTable, typedCaps)
+    if (!typed || typed.length === 0) return names
+    return typed
+  }
   readonly property var displayedMouseLabels: {
     if (mouseRequireKeys && (!overlayLabels || overlayLabels.length === 0)) return []
     return Keys.mouseLabels(displayedPointerButtons, mouseLabelStyle, mouseSettings())
@@ -150,6 +162,7 @@ Item {
     overlayEnabled = next.overlayEnabled
     showWhileRecording = next.showWhileRecording
     if (!showWhileRecording) openedForRecording = false
+    showTyped = next.showTyped
     frameEnabled = next.frameEnabled
     roundingEnabled = next.roundingEnabled
     rounding = next.rounding
@@ -194,6 +207,7 @@ Item {
     if (!overlayEnabled) {
       lingerTimer.stop()
       displayedKeys = []
+      displayedCodes = []
     } else if (heldKeys.length > 0) {
       displayedKeys = heldKeys
     }
@@ -208,6 +222,7 @@ Item {
       id: root.moduleName,
       overlayEnabled: overlayEnabled,
       showWhileRecording: showWhileRecording,
+      showTyped: showTyped,
       frameEnabled: frameEnabled,
       roundingEnabled: roundingEnabled,
       rounding: rounding,
@@ -262,6 +277,32 @@ Item {
   function setOverlayEnabled(value) {
     openedForRecording = false
     return applyOverlayEnabled(value)
+  }
+
+  function setShowTyped(value) {
+    var next = Keys.normalizeSettings({ showTyped: value }).showTyped
+    if (next === showTyped) return false
+    var saved = persistSettings({ showTyped: next })
+    if (next) refreshTyped()
+    return saved
+  }
+
+  function refreshTyped() {
+    if (!showTyped || typedProcess.running) return
+    var script = localPath(Qt.resolvedUrl("scripts/typed-chars"))
+    if (script === "") return
+    typedProcess.command = ["python3", script]
+    typedProcess.running = true
+  }
+
+  function applyTypedMap(raw, exitCode) {
+    if (exitCode !== 0) return false
+    var parsed = null
+    try { parsed = JSON.parse(String(raw || "")) } catch (e) {}
+    if (!parsed || typeof parsed !== "object") return false
+    typedCaps = parsed.caps === true
+    typedTable = parsed.chars && typeof parsed.chars === "object" ? parsed.chars : ({})
+    return true
   }
 
   function setShowWhileRecording(value) {
@@ -448,6 +489,7 @@ Item {
       if (!overlayEnabled) {
         lingerTimer.stop()
         displayedKeys = []
+        displayedCodes = []
         clearPointerDisplay()
       }
     }
@@ -652,14 +694,23 @@ Item {
     return persistSettings({ mouseRippleMs: next })
   }
 
-  function applyHeldLabels(labels) {
+  function applyHeldLabels(labels, codes) {
+    var nextCodes = Array.isArray(codes) ? codes : []
+    var prevCodes = heldCodes || []
+    if (nextCodes.indexOf(66) !== -1 && prevCodes.indexOf(66) === -1)
+      typedCaps = !typedCaps
     var nextDisplay = Keys.displayedAfterHeld(heldKeys, labels, displayedKeys)
+    var shown = (displayedKeys || []).join("\n")
+    var changed = nextDisplay.join("\n") !== shown
     heldKeys = labels
+    heldCodes = nextCodes
     if (!overlayEnabled && !previewActive) {
       lingerTimer.stop()
       displayedKeys = []
+      displayedCodes = []
       return
     }
+    if (changed) displayedCodes = nextCodes.slice()
     displayedKeys = nextDisplay
     if (labels.length > 0) {
       lingerTimer.stop()
@@ -667,6 +718,7 @@ Item {
     }
     if (lingerMs <= 0 || displayedKeys.length === 0) {
       displayedKeys = []
+      displayedCodes = []
       return
     }
     lingerTimer.interval = lingerMs
@@ -684,7 +736,7 @@ Item {
     var parsed = Keys.parseProtocol(text)
     if (!parsed.ok) return false
     bridgeLive = true
-    applyHeldLabels(parsed.labels)
+    applyHeldLabels(parsed.labels, parsed.codes)
     return true
   }
 
@@ -696,7 +748,10 @@ Item {
       if (payload.indexOf("keycast:") === 0) handleProtocolEvent(payload)
       return
     }
-    if (Keys.isCatalogChangeEvent(name)) refreshBinds()
+    if (Keys.isCatalogChangeEvent(name)) {
+      refreshBinds()
+      refreshTyped()
+    }
   }
 
   function applyBinds(raw, exitCode) {
@@ -760,7 +815,10 @@ Item {
     interval: 600
     repeat: false
     onTriggered: {
-      if (root.heldKeys.length === 0) root.displayedKeys = []
+      if (root.heldKeys.length === 0) {
+        root.displayedKeys = []
+        root.displayedCodes = []
+      }
     }
   }
 
@@ -850,6 +908,13 @@ Item {
   }
 
   Process {
+    id: typedProcess
+    running: false
+    stdout: StdioCollector { id: typedStdout; waitForEnd: true }
+    onExited: function(exitCode) { root.applyTypedMap(typedStdout.text, exitCode) }
+  }
+
+  Process {
     id: bindsProcess
     running: false
     stdout: StdioCollector { id: bindsStdout; waitForEnd: true }
@@ -881,6 +946,7 @@ Item {
     root.applySettings(root.settingsEntry())
     root.inspectBridge()
     root.refreshBinds()
+    root.refreshTyped()
     snippetProcess.command = [root.controllerPath, "manual-snippet"]
     snippetProcess.running = true
   })

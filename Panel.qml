@@ -216,6 +216,16 @@ Panel {
 
               Toggle {
                 width: parent.width
+                label: "Show typed characters"
+                description: "! instead of Shift+1, using this keyboard's layout. Super, Ctrl, and left Alt stay as key names."
+                checked: root.service ? root.service.showTyped === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setShowTyped(!(root.service.showTyped === true))
+              }
+
+              Toggle {
+                width: parent.width
                 label: "Show while recording"
                 description: "Turn the overlay on with Omarchy's screen recorder, and off again when that take ends."
                 checked: root.service ? root.service.showWhileRecording === true : false

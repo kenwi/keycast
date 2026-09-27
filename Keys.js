@@ -379,6 +379,55 @@ function labelFor(code) {
   return "Key " + (n - XKB_OFFSET)
 }
 
+var TYPED_SHORTCUT = { 37: true, 105: true, 64: true, 133: true, 134: true }
+
+function typedGlyph(ch) {
+  var text = String(ch || "")
+  if (text === "" || /^\s+$/.test(text)) return ""
+  for (var i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) < 32) return ""
+  }
+  return text
+}
+
+function isLetterChar(ch) {
+  if (!ch || ch.length !== 1) return false
+  return ch.toLowerCase() !== ch.toUpperCase()
+}
+
+// Shift+1 becomes "!" when the layout says so. Super, Ctrl, and left Alt
+// stay key names, because those chords are shortcuts. Returns null when the
+// chord is not a typed character.
+function typedChord(codes, table, caps) {
+  if (!table || typeof table !== "object") return null
+  if (!Array.isArray(codes) || codes.length === 0) return null
+  var shift = false
+  var level3 = false
+  var keys = []
+  for (var i = 0; i < codes.length; i++) {
+    var code = Math.floor(Number(codes[i]))
+    if (!isFinite(code)) return null
+    if (TYPED_SHORTCUT[code]) return null
+    if (code === 50 || code === 62) shift = true
+    else if (code === 108) level3 = true
+    else if (code === 66) continue
+    else keys.push(code)
+  }
+  if (keys.length === 0) return null
+  var level = level3 ? (shift ? 3 : 2) : (shift ? 1 : 0)
+  var out = []
+  for (var k = 0; k < keys.length; k++) {
+    var levels = table[String(keys[k])]
+    if (!levels || levels.length <= level) return null
+    var glyph = typedGlyph(levels[level])
+    if (glyph === "") return null
+    if (caps === true && isLetterChar(glyph))
+      glyph = shift ? glyph.toLowerCase() : glyph.toUpperCase()
+    out.push(glyph)
+  }
+  return out
+}
+
 function labelsForCodes(codes) {
   if (!Array.isArray(codes)) return []
   var seenMod = {}
@@ -686,6 +735,7 @@ function normalizeSettings(entry) {
   return {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
     showWhileRecording: flagOr(src.showWhileRecording, false),
+    showTyped: flagOr(src.showTyped, false),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
       ? false : isEnabledFlag(frameRaw),
     roundingEnabled: src.roundingEnabled === undefined || src.roundingEnabled === null || src.roundingEnabled === ""
@@ -884,6 +934,7 @@ if (typeof module !== "undefined") {
     PROTOCOL_PREFIX: PROTOCOL_PREFIX,
     labelFor: labelFor,
     labelsForCodes: labelsForCodes,
+    typedChord: typedChord,
     parseProtocol: parseProtocol,
     parsePointer: parsePointer,
     pointerLabel: pointerLabel,

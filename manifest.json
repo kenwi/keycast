@@ -22,6 +22,7 @@
     "defaults": {
       "overlayEnabled": false,
       "showWhileRecording": false,
+      "showTyped": false,
       "frameEnabled": false,
       "roundingEnabled": true,
       "rounding": 8,
@@ -72,6 +73,12 @@
         "key": "showWhileRecording",
         "type": "boolean",
         "label": "Show while recording",
+        "defaultValue": false
+      },
+      {
+        "key": "showTyped",
+        "type": "boolean",
+        "label": "Show typed characters",
         "defaultValue": false
       },
       {

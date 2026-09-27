@@ -17,7 +17,7 @@ Item {
   readonly property var labels: {
     var _epoch = root.previewEpoch
     if (!service) return []
-    return Keys.overlayLabels(service.displayedKeys, service.previewActive, service.previewKeys)
+    return service.overlayLabels
   }
   readonly property var mouseLabels: service ? service.displayedMouseLabels : []
   readonly property string mousePlacement: service ? String(service.mousePlacement || "inline") : "inline"

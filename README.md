@@ -42,6 +42,7 @@ switches to Custom.*
 ## Features
 
 - Shows the keys that are currently held, not a typing history
+- Optional typed characters: Shift+1 shows `!` from the active keyboard layout. Super, Ctrl, and left Alt chords stay as key names
 - Default position: bottom middle
 - Configurable vertical edge (`top` / `middle` / `bottom`)
 - Configurable horizontal edge (`left` / `middle` / `right`)
@@ -114,6 +115,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "id": "local.keycast",
   "overlayEnabled": false,
   "showWhileRecording": false,
+  "showTyped": false,
   "frameEnabled": false,
   "roundingEnabled": true,
   "rounding": 8,
@@ -145,6 +147,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 |-----|--------|---------|
 | `overlayEnabled` | `true` / `false` | `false` |
 | `showWhileRecording` | `true` / `false` | `false` |
+| `showTyped` | `true` / `false` | `false` |
 | `frameEnabled` | `true` / `false` | `false` |
 | `roundingEnabled` | `true` / `false` | `true` |
 | `rounding` | 0-32 px | `8` |
@@ -212,7 +215,8 @@ omarchy-shell local.keycast toggle
 | `KeycastCard.qml` | Keycap card drawn by the overlay |
 | `BarWidget.qml` | Toggle + settings panel host |
 | `Panel.qml` | Bridge setup, overlay, position, colors, and mouse pages |
-| `Keys.js` | Keycode labels, protocol parse, bind catalog, settings normalize |
+| `Keys.js` | Keycode labels, typed characters, protocol parse, bind catalog, settings normalize |
+| `scripts/typed-chars` | Active layout characters for the typed overlay |
 | `bridge.lua` | Hyprland keyboard observer and non-consuming mouse binds |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
 | `screenshots/` | Demo GIF and settings-page images for this README |
