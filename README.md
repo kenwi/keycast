@@ -18,26 +18,55 @@ custom scale, a color theme, and a click ripple.*
 underneath. Super+W shows Close window, the same text Super+K lists for that
 shortcut. The box is click-through so it does not steal clicks in a recording.*
 
+The center layout is a wide box in the middle of the screen. The box stays one
+size on every tab.
+
+![Center layout, Overlay](screenshots/center-overlay.png)
+
+*Center layout, Overlay page. Side and Center switch the layout. Pressed keys,
+typed characters, and the shortcut action sit in columns.*
+
+![Center layout, Position](screenshots/center-position.png)
+
+*Center layout, Position page. Monitor, vertical and horizontal edges, edge
+padding, and scale.*
+
+![Center layout, Colors](screenshots/center-colors.png)
+
+*Center layout, Colors page. Theme chips wrap across the box, with background,
+border, and font hex fields underneath.*
+
+![Center layout, Mouse](screenshots/center-mouse.png)
+
+*Center layout, Mouse page. Show mouse, placement, and labels sit beside the
+button, scroll, and ripple columns.*
+
+![Center layout, Ignore](screenshots/center-ignore.png)
+
+*Center layout, Ignore page. Record a chord, then select it and remove it, or
+remove all.*
+
+The side layout is the narrow panel beside the bar.
+
 ![Overlay settings](screenshots/settings-overlay.png)
 
-*Overlay page - right-click the bar icon. Turn the overlay on, optionally preview
-a sample hotkey while this panel is open, set outer box, rounding, and a
-searchable system font, linger after release, and place the shortcut action
-above or below the keys. The Hyprland bridge is installed or removed from this
-page.*
+*Side layout, Overlay page. Turn the overlay on, optionally preview a sample
+hotkey while this panel is open, set outer box, rounding, and a searchable
+system font, linger after release, and place the shortcut action above or below
+the keys. The Hyprland bridge is installed or removed from this page.*
 
 ![Position settings](screenshots/settings-position.png)
 
-*Position page - vertical and horizontal edge (including middle), padding from
-the chosen edge, and overlay scale. Custom sits on the same row as the presets
-and opens a spin field for 0.5-5.*
+*Side layout, Position page. Vertical and horizontal edge (including middle),
+padding from the chosen edge, and overlay scale. Custom sits on the same row as
+the presets and opens a spin field for 0.5-5.*
 
 ![Color settings](screenshots/settings-colors.png)
 
-*Colors page - every palette is a chip: Shell follows the Omarchy theme and
-fills background, border, and font with the colors in use. Neon, Matrix,
-Vapor, and the other presets fill those hex fields too. Editing a hex value
-switches to Custom.*
+*Side layout, Colors page. Every palette is a chip: Shell follows the Omarchy
+theme and fills background, border, and font with the colors in use. Neon,
+Matrix, Vapor, and the other presets fill those hex fields too. Editing a hex
+value switches to Custom.*
 
 ## Features
 
@@ -236,7 +265,7 @@ omarchy-shell keycast toggle
 | `scripts/typed-chars` | Active layout characters for the typed overlay |
 | `bridge.lua` | Hyprland keyboard observer and non-consuming mouse binds |
 | `scripts/bridge-control` | Inspect / enable / disable the managed Hyprland block |
-| `screenshots/` | Demo GIF and settings-page images for this README |
+| `screenshots/` | Demo GIF, side settings pages, and center layout pages for this README |
 | `README.md` | This file |
 
 ## Tests

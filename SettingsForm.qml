@@ -331,7 +331,7 @@ Flickable {
         spacing: Style.space(16)
 
       Column {
-        width: form.colWidth(3)
+        width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
         PanelSectionHeader {
@@ -340,7 +340,8 @@ Flickable {
           fontFamily: host.fontFamily
         }
         ButtonGroup {
-          width: parent.width
+          id: monitorModes
+          width: form.wide ? implicitWidth : parent.width
           foreground: host.fg
           fontFamily: host.fontFamily
           value: host.service ? host.service.overlayMonitor : "all"
@@ -352,7 +353,7 @@ Flickable {
           onChanged: function(value) { if (host.service) host.service.setOverlayMonitor(value) }
         }
         Text {
-          width: parent.width
+          width: form.wide ? monitorModes.implicitWidth : parent.width
           textFormat: Text.PlainText
           text: {
             var mode = host.service ? String(host.service.overlayMonitor || "all") : "all"
@@ -367,7 +368,7 @@ Flickable {
           wrapMode: Text.WordWrap
         }
         Text {
-          width: parent.width
+          width: form.wide ? monitorModes.implicitWidth : parent.width
           textFormat: Text.PlainText
           text: {
             var live = Keys.monitorOptions(host.service ? host.service.monitorChoices : [], "")
@@ -383,7 +384,7 @@ Flickable {
           wrapMode: Text.WordWrap
         }
         Flow {
-          width: parent.width
+          width: form.wide ? monitorModes.implicitWidth : parent.width
           spacing: Style.spacing.md
           visible: host.service && host.service.overlayMonitor === "specific"
 
@@ -407,7 +408,7 @@ Flickable {
       }
 
       Column {
-        width: form.colWidth(3)
+        width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
         PanelSectionHeader {
@@ -416,7 +417,7 @@ Flickable {
           fontFamily: host.fontFamily
         }
         ButtonGroup {
-          width: parent.width
+          width: form.wide ? implicitWidth : parent.width
           foreground: host.fg
           fontFamily: host.fontFamily
           value: host.service ? host.service.vertical : "bottom"
@@ -434,7 +435,7 @@ Flickable {
           fontFamily: host.fontFamily
         }
         ButtonGroup {
-          width: parent.width
+          width: form.wide ? implicitWidth : parent.width
           foreground: host.fg
           fontFamily: host.fontFamily
           value: host.service ? host.service.horizontal : "middle"
@@ -449,12 +450,17 @@ Flickable {
       }
 
       Column {
-        width: form.colWidth(3)
+        width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
+        PanelSectionHeader {
+          text: "EDGE PADDING"
+          foreground: host.fg
+          fontFamily: host.fontFamily
+        }
         NumberField {
-          width: parent.width
-          label: "Edge padding (px)"
+          width: form.wide ? implicitWidth : parent.width
+          label: ""
           value: host.service ? host.service.padding : 24
           from: 0
           to: 400
