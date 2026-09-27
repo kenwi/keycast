@@ -60,7 +60,8 @@ switches to Custom.*
 - Short linger after release (default 600 ms) so quick taps stay visible on video
 - Optional show while recording: the overlay follows Omarchy's screen recorder (`gpu-screen-recorder`). It turns off when the take ends only if Keycast turned it on. A manual overlay stays as you left it
 - Left-click the bar icon to toggle the overlay
-- Right-click the bar icon for Overlay, Position, Colors, Mouse, and the Hyprland bridge
+- Right-click the bar icon for Overlay, Position, Colors, Mouse, Ignore, and the Hyprland bridge
+- Ignore tab: record a chord by holding it for half a second. That exact combination stays off the overlay. Select one in the list and remove it
 - Settings layout: Side is the narrow panel beside the bar. Center is a wide box in the middle of the screen, with each page arranged in columns
 - IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell local.keycast settings` opens or closes the settings panel
 
@@ -71,6 +72,7 @@ Keycast is an on-screen display for recordings, not a logger.
 - No `/dev/input` or evdev listener
 - No key history, timestamps, or log files
 - Held keycodes live only in Hyprland/Quickshell memory
+- Ignored chords are combinations you record on purpose. They are saved with the other settings, not as a key log
 - The overlay is off until you turn it on
 - Disable or remove the Hyprland bridge when you are not recording if you want
   the observer unloaded
@@ -128,6 +130,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "overlayMonitor": "all",
   "overlayMonitorName": "",
   "settingsLayout": "side",
+  "ignoredChords": "",
   "padding": 24,
   "scale": 1,
   "scaleCustom": false,
@@ -164,6 +167,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `overlayMonitor` | `all` / `focused` / `specific` | `all` |
 | `overlayMonitorName` | Hyprland connector, such as `DP-1` | empty |
 | `settingsLayout` | `side` / `center` | `side` |
+| `ignoredChords` | comma-separated keycode chords, such as `38+133` | empty |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
 | `scaleCustom` | `true` / `false` | `false` |

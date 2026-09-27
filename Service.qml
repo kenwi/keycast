@@ -31,6 +31,10 @@ Item {
   property string overlayMonitor: "all"
   property string overlayMonitorName: ""
   property string settingsLayout: "side"
+  property var ignoredChords: []
+  property bool recordingIgnore: false
+  property string recordingChordKey: ""
+  property string selectedIgnore: ""
   property string focusedMonitorName: ""
   property var monitorChoices: []
   property int padding: 24
@@ -180,6 +184,8 @@ Item {
     overlayMonitor = next.overlayMonitor
     overlayMonitorName = next.overlayMonitorName
     settingsLayout = next.settingsLayout
+    ignoredChords = next.ignoredChords
+    if ((next.ignoredChords || []).indexOf(selectedIgnore) === -1) selectedIgnore = ""
     padding = next.padding
     scaleFactor = next.scale
     scaleCustom = next.scaleCustom === true
@@ -244,6 +250,7 @@ Item {
       overlayMonitor: overlayMonitor,
       overlayMonitorName: overlayMonitorName,
       settingsLayout: settingsLayout,
+      ignoredChords: ignoredChords,
       padding: padding,
       scale: scaleFactor,
       scaleCustom: scaleCustom,
@@ -280,6 +287,7 @@ Item {
     }
     for (var changed in changes) next[changed] = changes[changed]
     applySettings(next)
+    next.ignoredChords = Keys.ignoredChordsText(root.ignoredChords)
     if (!root.shell || typeof root.shell.updateEntryInline !== "function") return false
     return root.shell.updateEntryInline(root.moduleName, next)
   }
@@ -766,23 +774,100 @@ Item {
     return persistSettings({ mouseRippleMs: next })
   }
 
+  function stopIgnoreRecording() {
+    recordingIgnore = false
+    recordingChordKey = ""
+    ignoreHoldTimer.stop()
+  }
+
+  function toggleIgnoreRecording() {
+    if (recordingIgnore) {
+      stopIgnoreRecording()
+      return
+    }
+    recordingIgnore = true
+    recordingChordKey = ""
+  }
+
+  function noteIgnoreHold(codes) {
+    var key = Keys.chordKey(codes)
+    recordingChordKey = key
+    if (key === "") {
+      ignoreHoldTimer.stop()
+      return
+    }
+    if (ignoreHoldTimer.running && ignoreHoldTimer.chordKey === key) return
+    ignoreHoldTimer.chordKey = key
+    ignoreHoldTimer.restart()
+  }
+
+  function commitIgnoreRecording() {
+    var key = String(ignoreHoldTimer.chordKey || "")
+    if (key === "" || Keys.chordKey(key.split("+")) !== key) {
+      stopIgnoreRecording()
+      return
+    }
+    var list = Keys.normalizeIgnoredChords(ignoredChords)
+    if (list.indexOf(key) === -1) {
+      list.push(key)
+      persistSettings({ ignoredChords: list })
+    }
+    selectedIgnore = key
+    stopIgnoreRecording()
+    if (Keys.chordIgnored(heldCodes, ignoredChords)) {
+      heldKeys = []
+      lingerTimer.stop()
+      displayedKeys = []
+      displayedCodes = []
+    }
+  }
+
+  function removeIgnoredChord(key) {
+    var target = String(key || selectedIgnore || "")
+    if (target === "") return false
+    var list = []
+    var current = Keys.normalizeIgnoredChords(ignoredChords)
+    for (var i = 0; i < current.length; i++) {
+      if (current[i] !== target) list.push(current[i])
+    }
+    if (list.length === current.length) return false
+    if (selectedIgnore === target) selectedIgnore = ""
+    return persistSettings({ ignoredChords: list })
+  }
+
+  Timer {
+    id: ignoreHoldTimer
+    interval: 500
+    repeat: false
+    property string chordKey: ""
+    onTriggered: root.commitIgnoreRecording()
+  }
+
   function applyHeldLabels(labels, codes) {
     var nextCodes = Array.isArray(codes) ? codes : []
     var prevCodes = heldCodes || []
     if (nextCodes.indexOf(66) !== -1 && prevCodes.indexOf(66) === -1)
       typedCaps = !typedCaps
+    if (recordingIgnore) noteIgnoreHold(nextCodes)
     var nextDisplay = Keys.displayedAfterHeld(heldKeys, labels, displayedKeys)
+    var displayCodes = Keys.displayedChordCodes(nextDisplay, labels, nextCodes, displayedKeys, displayedCodes)
     var shown = (displayedKeys || []).join("\n")
     var changed = nextDisplay.join("\n") !== shown
     heldKeys = labels
     heldCodes = nextCodes
+    if (Keys.chordIgnored(displayCodes, ignoredChords)) {
+      lingerTimer.stop()
+      displayedKeys = []
+      displayedCodes = []
+      return
+    }
     if (!overlayEnabled && !previewActive) {
       lingerTimer.stop()
       displayedKeys = []
       displayedCodes = []
       return
     }
-    if (changed) displayedCodes = nextCodes.slice()
+    if (changed) displayedCodes = displayCodes.slice()
     displayedKeys = nextDisplay
     if (labels.length > 0) {
       lingerTimer.stop()

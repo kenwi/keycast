@@ -32,6 +32,7 @@
       "overlayMonitor": "all",
       "overlayMonitorName": "",
       "settingsLayout": "side",
+      "ignoredChords": "",
       "padding": 24,
       "scale": 1,
       "scaleCustom": false,
@@ -141,6 +142,13 @@
         "description": "side keeps the narrow panel beside the bar. center opens a wide box in the middle of the screen",
         "options": ["side", "center"],
         "defaultValue": "side"
+      },
+      {
+        "key": "ignoredChords",
+        "type": "string",
+        "label": "Ignored chords",
+        "description": "Comma-separated keycode chords the overlay hides, such as 38+133. Record them on the Ignore tab.",
+        "defaultValue": ""
       },
       {
         "key": "overlayMonitorName",

@@ -59,6 +59,7 @@ Panel {
   }
 
   function close() {
+    if (service) service.stopIgnoreRecording()
     controller.hide()
     syncPreview()
     syncPanels()

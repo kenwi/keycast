@@ -438,6 +438,73 @@ function uppercaseLabels(labels) {
   return out
 }
 
+function chordKey(codes) {
+  if (!Array.isArray(codes)) return ""
+  var seen = {}
+  var nums = []
+  for (var i = 0; i < codes.length; i++) {
+    var n = Math.floor(Number(codes[i]))
+    if (!isFinite(n) || n < 1 || seen[n]) continue
+    seen[n] = true
+    nums.push(n)
+  }
+  if (nums.length === 0) return ""
+  nums.sort(function(a, b) { return a - b })
+  return nums.join("+")
+}
+
+function listItems(raw) {
+  if (raw == null || raw === "") return []
+  if (typeof raw === "string") return raw.split(",")
+  if (typeof raw !== "object" || typeof raw.length !== "number") return []
+  var out = []
+  for (var i = 0; i < raw.length; i++) out.push(raw[i])
+  return out
+}
+
+function normalizeIgnoredChords(raw) {
+  var list = listItems(raw)
+  var out = []
+  var seen = {}
+  for (var i = 0; i < list.length && out.length < 32; i++) {
+    var item = list[i]
+    var codes = Array.isArray(item) ? item : String(item || "").split("+")
+    var key = chordKey(codes)
+    if (key === "" || seen[key]) continue
+    seen[key] = true
+    out.push(key)
+  }
+  return out
+}
+
+function ignoredChordsText(raw) {
+  return normalizeIgnoredChords(raw).join(",")
+}
+
+function chordIgnored(codes, list) {
+  var key = chordKey(codes)
+  if (key === "") return false
+  return normalizeIgnoredChords(list).indexOf(key) !== -1
+}
+
+// The overlay keeps the last full chord while any of its keys are still down.
+// Those codes stay with the shown chord. A live snapshot that has shrunk to
+// an ignored subset, such as Super after Super+K, must not replace them.
+function displayedChordCodes(nextDisplay, liveLabels, liveCodes, prevDisplayed, prevCodes) {
+  var next = Array.isArray(nextDisplay) ? nextDisplay : []
+  var live = Array.isArray(liveLabels) ? liveLabels : []
+  var prev = Array.isArray(prevDisplayed) ? prevDisplayed : []
+  if (live.length === 0 || next.join("\n") === prev.join("\n"))
+    return Array.isArray(prevCodes) ? prevCodes.slice() : []
+  return Array.isArray(liveCodes) ? liveCodes.slice() : []
+}
+
+function chordLabel(key) {
+  var labels = labelsForCodes(String(key || "").split("+"))
+  if (labels.length === 0) return String(key || "")
+  return labels.join(" + ")
+}
+
 function labelsForCodes(codes) {
   if (!Array.isArray(codes)) return []
   var seenMod = {}
@@ -786,6 +853,7 @@ function normalizeSettings(entry) {
     overlayMonitor: pickChoice(src.overlayMonitor, MONITOR_MODES, "all"),
     overlayMonitorName: String(src.overlayMonitorName == null ? "" : src.overlayMonitorName).trim(),
     settingsLayout: pickChoice(src.settingsLayout, SETTINGS_LAYOUTS, "side"),
+    ignoredChords: normalizeIgnoredChords(src.ignoredChords),
     padding: clampInt(src.padding, 0, 400, 24),
     scale: scale,
     scaleCustom: scaleCustom,
@@ -979,6 +1047,12 @@ if (typeof module !== "undefined") {
     labelsForCodes: labelsForCodes,
     typedChord: typedChord,
     uppercaseLabels: uppercaseLabels,
+    chordKey: chordKey,
+    chordIgnored: chordIgnored,
+    displayedChordCodes: displayedChordCodes,
+    chordLabel: chordLabel,
+    normalizeIgnoredChords: normalizeIgnoredChords,
+    ignoredChordsText: ignoredChordsText,
     parseProtocol: parseProtocol,
     parsePointer: parsePointer,
     pointerLabel: pointerLabel,

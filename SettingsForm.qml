@@ -132,7 +132,8 @@ Flickable {
             { value: "overlay", label: "Overlay" },
             { value: "position", label: "Position" },
             { value: "colors", label: "Colors" },
-            { value: "mouse", label: "Mouse" }
+            { value: "mouse", label: "Mouse" },
+            { value: "ignore", label: "Ignore" }
           ]
 
           delegate: Button {
@@ -765,6 +766,77 @@ Flickable {
           fontFamily: host.fontFamily
           onModified: function(value) { if (host.service) host.service.setMouseRippleMs(value) }
         }
+      }
+    }
+
+    Column {
+      visible: host.settingsPage === "ignore"
+      width: parent.width
+      spacing: Style.space(10)
+
+      Text {
+        width: parent.width
+        textFormat: Text.PlainText
+        text: "Record a chord and hold it for half a second. That exact combination stays off the overlay. A shorter hold, or a different set of keys, still shows."
+        color: host.fg
+        opacity: 0.78
+        font.family: host.fontFamily
+        font.pixelSize: Style.font.caption
+        wrapMode: Text.WordWrap
+      }
+      Button {
+        text: host.service && host.service.recordingIgnore ? "Stop" : "Record"
+        selected: host.service ? host.service.recordingIgnore === true : false
+        bordered: true
+        foreground: host.fg
+        fontFamily: host.fontFamily
+        onClicked: if (host.service) host.service.toggleIgnoreRecording()
+      }
+      Text {
+        width: parent.width
+        visible: host.service ? host.service.recordingIgnore === true : false
+        textFormat: Text.PlainText
+        text: {
+          var key = host.service ? host.service.recordingChordKey : ""
+          if (key) return "Holding " + Keys.chordLabel(key) + ". Keep it down."
+          return "Waiting for keys. Hold the chord for half a second."
+        }
+        color: host.fg
+        font.family: host.fontFamily
+        font.pixelSize: Style.font.caption
+        wrapMode: Text.WordWrap
+      }
+      PanelSectionHeader { text: "IGNORED" }
+      Text {
+        width: parent.width
+        visible: !host.service || !host.service.ignoredChords || host.service.ignoredChords.length === 0
+        textFormat: Text.PlainText
+        text: "None yet."
+        color: host.fg
+        opacity: 0.78
+        font.family: host.fontFamily
+        font.pixelSize: Style.font.caption
+      }
+      Repeater {
+        model: host.service ? host.service.ignoredChords : []
+        delegate: Button {
+          required property string modelData
+          width: parent.width
+          text: Keys.chordLabel(modelData)
+          selected: host.service && host.service.selectedIgnore === modelData
+          bordered: true
+          foreground: host.fg
+          fontFamily: host.fontFamily
+          onClicked: if (host.service) host.service.selectedIgnore = modelData
+        }
+      }
+      Button {
+        text: "Remove"
+        bordered: true
+        enabled: !!host.service && host.service.selectedIgnore !== ""
+        foreground: host.fg
+        fontFamily: host.fontFamily
+        onClicked: if (host.service) host.service.removeIgnoredChord(host.service.selectedIgnore)
       }
     }
 
