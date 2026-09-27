@@ -8,7 +8,7 @@ import "Keys.js" as Keys
 Item {
   id: root
 
-  readonly property string moduleName: "local.keycast"
+  readonly property string moduleName: "keycast"
   property var shell: null
   property var manifest: null
 
@@ -1091,7 +1091,7 @@ Item {
   }
 
   IpcHandler {
-    target: "local.keycast"
+    target: "keycast"
     function show(): string { root.setOverlayEnabled(true); return root.overlayEnabled ? "on" : "off" }
     function hide(): string { root.setOverlayEnabled(false); return "off" }
     function toggle(): string { root.toggleOverlay(); return root.overlayEnabled ? "on" : "off" }

@@ -39,7 +39,7 @@ with tempfile.TemporaryDirectory() as raw:
         folder,
         "-- user\n"
         "-- >>> Keycast managed bridge >>>\n"
-        'pcall(dofile, "/old/path/local.keycast/bridge.lua")\n'
+        'pcall(dofile, "/old/path/keycast/bridge.lua")\n'
         "-- <<< Keycast managed bridge <<<\n",
     )
     code, inspect = run(env, "inspect")

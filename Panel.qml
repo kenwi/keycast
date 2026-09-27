@@ -7,8 +7,8 @@ import "Keys.js" as Keys
 Panel {
   id: root
 
-  moduleName: "local.keycast"
-  ipcTarget: "local.keycast-panel"
+  moduleName: "keycast"
+  ipcTarget: "keycast-panel"
   manageIpc: false
 
   property var anchorItem: null

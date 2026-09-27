@@ -5,7 +5,7 @@ import "Keys.js" as Keys
 
 BarWidget {
   id: root
-  moduleName: "local.keycast"
+  moduleName: "keycast"
 
   property var service: null
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false

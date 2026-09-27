@@ -1,4 +1,4 @@
-# Keycast (`local.keycast`)
+# Keycast
 
 On-screen overlay of currently pressed keys, for screen recordings.
 
@@ -63,7 +63,7 @@ switches to Custom.*
 - Right-click the bar icon for Overlay, Position, Colors, Mouse, Ignore, and the Hyprland bridge
 - Ignore tab: record a chord by holding it for half a second. That exact combination stays off the overlay. Select one in the list and remove it
 - Settings layout: Side is the narrow panel beside the bar. Center is a wide box in the middle of the screen, with each page arranged in columns
-- IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell local.keycast settings` opens or closes the settings panel
+- IPC: `omarchy-shell keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell keycast settings` opens or closes the settings panel
 
 ## Privacy
 
@@ -81,8 +81,8 @@ Keycast is an on-screen display for recordings, not a logger.
 
 ```bash
 git clone https://github.com/kenwi/keycast.git ~/Work/keycast
-ln -s ~/Work/keycast ~/.config/omarchy/plugins/local.keycast
-omarchy plugin enable local.keycast
+ln -s ~/Work/keycast ~/.config/omarchy/plugins/keycast
+omarchy plugin enable keycast
 ```
 
 Right-click the keyboard icon on the bar and choose **Enable Hyprland bridge**.
@@ -99,16 +99,16 @@ without clicking the bar. Super+K already opens the keybindings list; Super+Shif
 is free in Omarchy defaults and stays next to that:
 
 ```lua
-o.bind("SUPER + SHIFT + K", "Toggle keycast", "omarchy-shell local.keycast toggle")
-o.bind("SUPER + SHIFT + L", "Keycast settings", "omarchy-shell local.keycast settings")
+o.bind("SUPER + SHIFT + K", "Toggle keycast", "omarchy-shell keycast toggle")
+o.bind("SUPER + SHIFT + L", "Keycast settings", "omarchy-shell keycast settings")
 ```
 
 Reload Hyprland after saving. The description appears in Super+K. Pick any unused
 combo if you already bound that one. One-way variants for the overlay:
 
 ```lua
-o.bind("SUPER + SHIFT + K", "Show keycast", "omarchy-shell local.keycast show")
-o.bind("SUPER + SHIFT + J", "Hide keycast", "omarchy-shell local.keycast hide")
+o.bind("SUPER + SHIFT + K", "Show keycast", "omarchy-shell keycast show")
+o.bind("SUPER + SHIFT + J", "Hide keycast", "omarchy-shell keycast hide")
 ```
 
 ## Settings
@@ -117,7 +117,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 
 ```json
 {
-  "id": "local.keycast",
+  "id": "keycast",
   "overlayEnabled": false,
   "showWhileRecording": false,
   "showTyped": false,
@@ -200,24 +200,24 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 CLI examples:
 
 ```bash
-omarchy bar set local.keycast vertical middle
-omarchy bar set local.keycast horizontal middle
-omarchy bar set local.keycast padding 40
-omarchy bar set local.keycast scale 1.25
-omarchy bar set local.keycast scaleCustom true
-omarchy bar set local.keycast scale 1.4
-omarchy bar set local.keycast frameEnabled false
-omarchy bar set local.keycast roundingEnabled false
-omarchy bar set local.keycast rounding 12
-omarchy bar set local.keycast actionEnabled true
-omarchy bar set local.keycast previewEnabled false
-omarchy bar set local.keycast actionPosition above
-omarchy bar set local.keycast fontFamily "JetBrainsMono Nerd Font"
-omarchy bar set local.keycast colorTheme mocha
-omarchy bar set local.keycast backgroundColor "#1A1A1A"
-omarchy bar set local.keycast borderColor "#6E6E6E"
-omarchy bar set local.keycast fontColor "#F5F5F5"
-omarchy-shell local.keycast toggle
+omarchy bar set keycast vertical middle
+omarchy bar set keycast horizontal middle
+omarchy bar set keycast padding 40
+omarchy bar set keycast scale 1.25
+omarchy bar set keycast scaleCustom true
+omarchy bar set keycast scale 1.4
+omarchy bar set keycast frameEnabled false
+omarchy bar set keycast roundingEnabled false
+omarchy bar set keycast rounding 12
+omarchy bar set keycast actionEnabled true
+omarchy bar set keycast previewEnabled false
+omarchy bar set keycast actionPosition above
+omarchy bar set keycast fontFamily "JetBrainsMono Nerd Font"
+omarchy bar set keycast colorTheme mocha
+omarchy bar set keycast backgroundColor "#1A1A1A"
+omarchy bar set keycast borderColor "#6E6E6E"
+omarchy bar set keycast fontColor "#F5F5F5"
+omarchy-shell keycast toggle
 ```
 
 ## Layout
@@ -242,5 +242,5 @@ omarchy-shell local.keycast toggle
 ## Tests
 
 ```bash
-local.keycast/tests/run
+keycast/tests/run
 ```

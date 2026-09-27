@@ -109,8 +109,8 @@ assert(defaults.scale === 1, "scale default")
 assert(defaults.scaleCustom === false, "scaleCustom default")
 
 const fromBar = Keys.settingsFromBar({
-  layout: { right: [{ id: "local.keycast", padding: 12 }] }
-}, "local.keycast")
+  layout: { right: [{ id: "keycast", padding: 12 }] }
+}, "keycast")
 assert(fromBar.padding === 12, "bar settings")
 assert(Keys.normalizeSettings({ frameEnabled: "off" }).frameEnabled === false, "frame off")
 assert(Keys.normalizeSettings({ frameEnabled: false }).frameEnabled === false, "frame false")
