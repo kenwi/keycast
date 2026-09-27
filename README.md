@@ -46,6 +46,7 @@ switches to Custom.*
 - Default position: bottom middle
 - Configurable vertical edge (`top` / `middle` / `bottom`)
 - Configurable horizontal edge (`left` / `middle` / `right`)
+- Optional monitor: every screen, the focused monitor, or one specific connector. The default is every screen
 - Configurable padding from the chosen edge (0-400 px, default 24; ignored on a middle axis)
 - Optional outer box around the keycaps
 - Optional corner rounding (0-32 px, default 8)
@@ -122,6 +123,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "rounding": 8,
   "vertical": "bottom",
   "horizontal": "middle",
+  "overlayMonitor": "all",
+  "overlayMonitorName": "",
   "padding": 24,
   "scale": 1,
   "scaleCustom": false,
@@ -155,6 +158,8 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `rounding` | 0-32 px | `8` |
 | `vertical` | `top` / `middle` / `bottom` | `bottom` |
 | `horizontal` | `left` / `middle` / `right` | `middle` |
+| `overlayMonitor` | `all` / `focused` / `specific` | `all` |
+| `overlayMonitorName` | Hyprland connector, such as `DP-1` | empty |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
 | `scaleCustom` | `true` / `false` | `false` |
@@ -213,7 +218,7 @@ omarchy-shell local.keycast toggle
 |------|------|
 | `manifest.json` | Plugin id, service + bar-widget entry points, settings schema |
 | `Service.qml` | Bridge events, overlay state, IPC, settings |
-| `Overlay.qml` | Click-through corner box on every monitor |
+| `Overlay.qml` | Click-through corner box on the chosen monitors |
 | `KeycastCard.qml` | Keycap card drawn by the overlay |
 | `BarWidget.qml` | Toggle + settings panel host |
 | `Panel.qml` | Bridge setup, overlay, position, colors, and mouse pages |

@@ -7,6 +7,7 @@ var POINTER_PREFIX = "keycast:v1:pointer:"
 var EMPTY_LABELS = []
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
+var MONITOR_MODES = ["all", "focused", "specific"]
 var ACTION_POSITIONS = ["above", "below"]
 var COLOR_THEMES = ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "neon", "matrix", "vapor", "cyber", "ember", "ice", "custom"]
 var THEME_LABELS = {
@@ -703,6 +704,35 @@ function randomPreview(catalog) {
   }
 }
 
+function overlayOnScreen(mode, screenName, focusedName, chosenName) {
+  var choice = String(mode || "all")
+  if (choice === "all") return true
+  var screen = String(screenName || "")
+  if (screen === "") return false
+  if (choice === "focused") return screen === String(focusedName || "")
+  if (choice === "specific") {
+    var chosen = String(chosenName || "")
+    return chosen !== "" && screen === chosen
+  }
+  return true
+}
+
+function monitorOptions(choices, savedName) {
+  var list = Array.isArray(choices) ? choices : []
+  var out = []
+  var seen = {}
+  for (var i = 0; i < list.length; i++) {
+    var name = String(list[i] && list[i].name || "").trim()
+    if (name === "" || seen[name]) continue
+    seen[name] = true
+    out.push({ name: name, label: name, connected: true })
+  }
+  var saved = String(savedName || "").trim()
+  if (saved !== "" && !seen[saved])
+    out.push({ name: saved, label: saved + " (unplugged)", connected: false })
+  return out
+}
+
 function overlayLabels(displayedKeys, previewEnabled, previewKeys) {
   if (displayedKeys && displayedKeys.length > 0) return displayedKeys
   if (previewEnabled && previewKeys && previewKeys.length > 0) return previewKeys
@@ -752,6 +782,8 @@ function normalizeSettings(entry) {
     rounding: clampInt(src.rounding, 0, 32, 8),
     vertical: pickChoice(src.vertical, VERTICALS, "bottom"),
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "middle"),
+    overlayMonitor: pickChoice(src.overlayMonitor, MONITOR_MODES, "all"),
+    overlayMonitorName: String(src.overlayMonitorName == null ? "" : src.overlayMonitorName).trim(),
     padding: clampInt(src.padding, 0, 400, 24),
     scale: scale,
     scaleCustom: scaleCustom,
@@ -958,6 +990,8 @@ if (typeof module !== "undefined") {
     comboToLabels: comboToLabels,
     randomPreview: randomPreview,
     overlayLabels: overlayLabels,
+    overlayOnScreen: overlayOnScreen,
+    monitorOptions: monitorOptions,
     isCatalogChangeEvent: isCatalogChangeEvent,
     overlayX: overlayX,
     alignX: alignX,

@@ -50,7 +50,13 @@ Item {
         required property var modelData
 
         screen: modelData
-        visible: root.showing
+        visible: {
+          var mode = root.service ? String(root.service.overlayMonitor || "all") : "all"
+          var focused = root.service ? String(root.service.focusedMonitorName || "") : ""
+          var chosen = root.service ? String(root.service.overlayMonitorName || "") : ""
+          var name = modelData ? String(modelData.name || "") : ""
+          return root.showing && Keys.overlayOnScreen(mode, name, focused, chosen)
+        }
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
         anchors { top: true; bottom: true; left: true; right: true }

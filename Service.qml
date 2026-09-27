@@ -27,6 +27,10 @@ Item {
   property int rounding: 8
   property string vertical: "bottom"
   property string horizontal: "middle"
+  property string overlayMonitor: "all"
+  property string overlayMonitorName: ""
+  property string focusedMonitorName: ""
+  property var monitorChoices: []
   property int padding: 24
   property real scaleFactor: 1
   property bool scaleCustom: false
@@ -171,6 +175,8 @@ Item {
     rounding = next.rounding
     vertical = next.vertical
     horizontal = next.horizontal
+    overlayMonitor = next.overlayMonitor
+    overlayMonitorName = next.overlayMonitorName
     padding = next.padding
     scaleFactor = next.scale
     scaleCustom = next.scaleCustom === true
@@ -232,6 +238,8 @@ Item {
       rounding: rounding,
       vertical: vertical,
       horizontal: horizontal,
+      overlayMonitor: overlayMonitor,
+      overlayMonitorName: overlayMonitorName,
       padding: padding,
       scale: scaleFactor,
       scaleCustom: scaleCustom,
@@ -364,6 +372,44 @@ Item {
     var next = Keys.normalizeSettings({ rounding: value }).rounding
     if (next === rounding) return false
     return persistSettings({ rounding: next })
+  }
+
+  function captureMonitors() {
+    var values = Hyprland.monitors ? Hyprland.monitors.values : []
+    var out = []
+    if (values && values.length) {
+      for (var i = 0; i < values.length; i++) {
+        var monitor = values[i]
+        if (!monitor) continue
+        var name = String(monitor.name || "").trim()
+        if (name === "") continue
+        out.push({
+          name: name,
+          description: String(monitor.description || ""),
+          focused: monitor.focused === true
+        })
+      }
+    }
+    monitorChoices = out
+    var focused = Hyprland.focusedMonitor
+    focusedMonitorName = focused ? String(focused.name || "").trim() : ""
+  }
+
+  function setOverlayMonitor(value) {
+    var next = Keys.normalizeSettings({ overlayMonitor: value }).overlayMonitor
+    var changes = { overlayMonitor: next }
+    if (next === "specific" && overlayMonitorName === "") {
+      var connected = Keys.monitorOptions(monitorChoices, "")
+      if (connected.length === 1) changes.overlayMonitorName = connected[0].name
+    }
+    if (next === overlayMonitor && changes.overlayMonitorName === undefined) return false
+    return persistSettings(changes)
+  }
+
+  function setOverlayMonitorName(value) {
+    var next = Keys.normalizeSettings({ overlayMonitorName: value }).overlayMonitorName
+    if (next === overlayMonitorName && overlayMonitor === "specific") return false
+    return persistSettings({ overlayMonitor: "specific", overlayMonitorName: next })
   }
 
   function setVertical(value) {
@@ -952,7 +998,18 @@ Item {
     function ping(): string { return "ok" }
   }
 
+  Connections {
+    target: Hyprland
+    function onFocusedMonitorChanged() { root.captureMonitors() }
+  }
+
+  Connections {
+    target: Hyprland.monitors
+    function onValuesChanged() { root.captureMonitors() }
+  }
+
   Component.onCompleted: Qt.callLater(function() {
+    root.captureMonitors()
     root.applySettings(root.settingsEntry())
     root.inspectBridge()
     root.refreshBinds()

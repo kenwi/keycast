@@ -367,6 +367,76 @@ Panel {
               spacing: Style.space(10)
 
               PanelSectionHeader {
+                text: "MONITOR"
+                foreground: root.fg
+                fontFamily: root.fontFamily
+              }
+              ButtonGroup {
+                width: parent.width
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                value: root.service ? root.service.overlayMonitor : "all"
+                options: [
+                  { value: "all", label: "All" },
+                  { value: "focused", label: "Focused" },
+                  { value: "specific", label: "Specific" }
+                ]
+                onChanged: function(value) { if (root.service) root.service.setOverlayMonitor(value) }
+              }
+              Text {
+                width: parent.width
+                textFormat: Text.PlainText
+                text: {
+                  var mode = root.service ? String(root.service.overlayMonitor || "all") : "all"
+                  if (mode === "focused") return "Only the monitor Hyprland has focused."
+                  if (mode === "specific") return "Only the monitor you pick. That choice stays if the display is unplugged."
+                  return "Every connected monitor."
+                }
+                color: root.fg
+                opacity: 0.78
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                wrapMode: Text.WordWrap
+              }
+              Text {
+                width: parent.width
+                textFormat: Text.PlainText
+                text: {
+                  var live = Keys.monitorOptions(root.service ? root.service.monitorChoices : [], "")
+                  if (live.length === 0) return "No monitors detected yet."
+                  var names = []
+                  for (var i = 0; i < live.length; i++) names.push(live[i].name)
+                  return "Connected: " + names.join(", ")
+                }
+                color: root.fg
+                opacity: 0.78
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.caption
+                wrapMode: Text.WordWrap
+              }
+              Flow {
+                width: parent.width
+                spacing: Style.spacing.md
+                visible: root.service && root.service.overlayMonitor === "specific"
+
+                Repeater {
+                  model: Keys.monitorOptions(
+                    root.service ? root.service.monitorChoices : [],
+                    root.service ? root.service.overlayMonitorName : "")
+
+                  Button {
+                    required property var modelData
+                    text: modelData.label
+                    selected: root.service && root.service.overlayMonitorName === String(modelData.name)
+                    bordered: true
+                    foreground: root.fg
+                    fontFamily: root.fontFamily
+                    onClicked: if (root.service) root.service.setOverlayMonitorName(modelData.name)
+                  }
+                }
+              }
+
+              PanelSectionHeader {
                 text: "VERTICAL"
                 foreground: root.fg
                 fontFamily: root.fontFamily

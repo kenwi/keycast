@@ -29,6 +29,8 @@
       "rounding": 8,
       "vertical": "bottom",
       "horizontal": "middle",
+      "overlayMonitor": "all",
+      "overlayMonitorName": "",
       "padding": 24,
       "scale": 1,
       "scaleCustom": false,
@@ -122,6 +124,21 @@
         "label": "Horizontal edge",
         "options": ["left", "middle", "right"],
         "defaultValue": "middle"
+      },
+      {
+        "key": "overlayMonitor",
+        "type": "enum",
+        "label": "Monitor",
+        "description": "all, the focused monitor, or one specific monitor",
+        "options": ["all", "focused", "specific"],
+        "defaultValue": "all"
+      },
+      {
+        "key": "overlayMonitorName",
+        "type": "string",
+        "label": "Specific monitor",
+        "description": "Hyprland connector name, such as DP-1, used when Monitor is specific",
+        "defaultValue": ""
       },
       {
         "key": "padding",
