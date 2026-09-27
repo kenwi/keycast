@@ -52,6 +52,10 @@ PanelWindow {
   property bool popoutSwitching: false
   property bool popoutSwitchClosing: false
   property bool focusPrimed: false
+  property bool fillScreen: false
+  // Layout switches close this window and map the next one. The fade would
+  // keep the old surface up, empty, which reads as a black card.
+  property bool suspendFade: false
 
   // Item that should take keyboard focus once the panel maps. Typically a
   // PanelKeyCatcher inside the panel content. Layer-shell grants focus to the
@@ -163,7 +167,7 @@ PanelWindow {
   }
   readonly property real centerBoxHeight: {
     var cap = availableCardHeight > 0 ? availableCardHeight : Style.space(520)
-    return Math.round(Math.min(cap, Math.max(Style.space(420), cap * 0.68)))
+    return Math.round(Math.min(cap, Math.max(Style.space(420), cap * 0.68) + 60))
   }
   readonly property real availableCardHeight: screenH > 0
     ? Math.max(120, screenH - ((barPos === "top" || barPos === "bottom") ? barH + gap + margin : margin * 2))
@@ -190,11 +194,19 @@ PanelWindow {
     return Math.round(Math.min(desired, maxHeight))
   }
 
-  // The card sits in the middle of the anchor screen. barW/barH stay for
-  // outside-click forwarding into the bar strip.
+  // The card sits in the middle of the anchor screen, unless fillScreen
+  // places it in the area around the bar. barW/barH stay for outside-click
+  // forwarding into the bar strip.
   readonly property real barW: anchorWindow ? anchorWindow.width : screenW
   readonly property real barH: anchorWindow ? anchorWindow.height : 0
   readonly property point cardOrigin: {
+    if (fillScreen) {
+      var fx = margin
+      var fy = margin
+      if (barPos === "top") fy = barH + gap
+      else if (barPos === "left") fx = barW + gap
+      return Qt.point(Math.round(fx), Math.round(fy))
+    }
     var x = screenW / 2 - contentWidth / 2
     var y = screenH / 2 - contentHeight / 2
     x = Math.max(margin, Math.min(x, Math.max(margin, screenW - contentWidth - margin)))
@@ -372,7 +384,7 @@ PanelWindow {
     opacity: root.open || root.popoutSwitching ? 1.0 : 0
 
     Behavior on opacity {
-      enabled: !root.popoutSwitching && !root.popoutSwitchClosing
+      enabled: !root.suspendFade && !root.popoutSwitching && !root.popoutSwitchClosing
       NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
     }
 

@@ -139,8 +139,8 @@
         "key": "settingsLayout",
         "type": "enum",
         "label": "Settings layout",
-        "description": "side keeps the narrow panel beside the bar. center opens a wide box in the middle of the screen",
-        "options": ["side", "center"],
+        "description": "side is the panel beside the bar, center is a wide box, fullscreen fills the screen",
+        "options": ["side", "center", "fullscreen"],
         "defaultValue": "side"
       },
       {

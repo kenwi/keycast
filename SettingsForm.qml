@@ -9,6 +9,7 @@ Item {
 
   property var host: null
   property bool wide: false
+  property bool fullscreen: false
 
   property alias formScroll: scroll
   readonly property int formHeight: contentColumn.implicitHeight
@@ -69,21 +70,10 @@ Flickable {
       value: host ? host.settingsLayout : "side"
       options: [
         { value: "side", label: "Side" },
-        { value: "center", label: "Center" }
+        { value: "center", label: "Center" },
+        { value: "fullscreen", label: "Fullscreen" }
       ]
       onChanged: function(value) { if (host && host.service) host.service.setSettingsLayout(value) }
-    }
-    Text {
-      width: parent.width
-      textFormat: Text.PlainText
-      text: form.wide
-        ? "Wide box in the middle of this screen. Pages use columns so the options sit together."
-        : "Narrow panel beside the bar."
-      color: host.fg
-      opacity: 0.78
-      font.family: host.fontFamily
-      font.pixelSize: Style.font.caption
-      wrapMode: Text.WordWrap
     }
 
     Column {
@@ -211,12 +201,6 @@ Flickable {
           }
         }
 
-        }
-
-      Column {
-        width: form.colWidth(2)
-        spacing: Style.space(10)
-
         Toggle {
           width: parent.width
           label: "Outer box"
@@ -226,6 +210,12 @@ Flickable {
           fontFamily: host.fontFamily
           onClicked: if (host.service) host.service.setFrameEnabled(!(host.service.frameEnabled === true))
         }
+
+        }
+
+      Column {
+        width: form.colWidth(2)
+        spacing: Style.space(10)
 
         Toggle {
           width: parent.width
@@ -331,6 +321,7 @@ Flickable {
         spacing: Style.space(16)
 
       Column {
+        id: monitorColumn
         width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
@@ -408,6 +399,7 @@ Flickable {
       }
 
       Column {
+        id: verticalColumn
         width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
@@ -428,6 +420,12 @@ Flickable {
           ]
           onChanged: function(value) { if (host.service) host.service.setVertical(value) }
         }
+      }
+
+      Column {
+        id: horizontalColumn
+        width: form.wide ? implicitWidth : parent.width
+        spacing: Style.space(10)
 
         PanelSectionHeader {
           text: "HORIZONTAL"
@@ -446,10 +444,10 @@ Flickable {
           ]
           onChanged: function(value) { if (host.service) host.service.setHorizontal(value) }
         }
-
       }
 
       Column {
+        id: paddingColumn
         width: form.wide ? implicitWidth : parent.width
         spacing: Style.space(10)
 
@@ -731,26 +729,34 @@ Flickable {
           fontFamily: host.fontFamily
           onClicked: if (host.service) host.service.setMouseFlag("mouseRippleFollow", !(host.service.mouseRippleFollow === true))
         }
-        NumberField {
+        Row {
+          id: rippleMeasures
           width: parent.width
-          label: "Follow rate (ms)"
-          value: host.service ? host.service.mouseRippleFollowMs : 16
-          from: 8
-          to: 64
-          stepSize: 8
-          foreground: host.fg
-          fontFamily: host.fontFamily
-          onModified: function(value) { if (host.service) host.service.setMouseRippleFollowMs(value) }
-        }
-        NumberField {
-          width: parent.width
-          label: "Ripple size (px)"
-          value: host.service ? host.service.mouseRippleSize : 36
-          from: 8
-          to: 160
-          foreground: host.fg
-          fontFamily: host.fontFamily
-          onModified: function(value) { if (host.service) host.service.setMouseRippleSize(value) }
+          spacing: Style.space(8)
+
+          NumberField {
+            width: (rippleMeasures.width - rippleMeasures.spacing) / 2
+            fieldWidth: width
+            label: "Follow rate (ms)"
+            value: host.service ? host.service.mouseRippleFollowMs : 16
+            from: 8
+            to: 64
+            stepSize: 8
+            foreground: host.fg
+            fontFamily: host.fontFamily
+            onModified: function(value) { if (host.service) host.service.setMouseRippleFollowMs(value) }
+          }
+          NumberField {
+            width: (rippleMeasures.width - rippleMeasures.spacing) / 2
+            fieldWidth: width
+            label: "Ripple size (px)"
+            value: host.service ? host.service.mouseRippleSize : 36
+            from: 8
+            to: 160
+            foreground: host.fg
+            fontFamily: host.fontFamily
+            onModified: function(value) { if (host.service) host.service.setMouseRippleSize(value) }
+          }
         }
         Toggle {
           width: parent.width
@@ -910,12 +916,10 @@ Flickable {
           width: form.colWidth(3)
           spacing: Style.space(4)
 
-          Text {
-            textFormat: Text.PlainText
-            text: "Background"
-            color: Qt.darker(host.fg, 1.4)
-            font.family: host.fontFamily
-            font.pixelSize: Style.font.bodySmall
+          PanelSectionHeader {
+            text: "BACKGROUND"
+            foreground: host.fg
+            fontFamily: host.fontFamily
           }
           Row {
             width: parent.width
@@ -949,12 +953,10 @@ Flickable {
           width: form.colWidth(3)
           spacing: Style.space(4)
 
-          Text {
-            textFormat: Text.PlainText
-            text: "Border"
-            color: Qt.darker(host.fg, 1.4)
-            font.family: host.fontFamily
-            font.pixelSize: Style.font.bodySmall
+          PanelSectionHeader {
+            text: "BORDER"
+            foreground: host.fg
+            fontFamily: host.fontFamily
           }
           Row {
             width: parent.width
@@ -988,12 +990,10 @@ Flickable {
           width: form.colWidth(3)
           spacing: Style.space(4)
 
-          Text {
-            textFormat: Text.PlainText
-            text: "Font"
-            color: Qt.darker(host.fg, 1.4)
-            font.family: host.fontFamily
-            font.pixelSize: Style.font.bodySmall
+          PanelSectionHeader {
+            text: "FONT"
+            foreground: host.fg
+            fontFamily: host.fontFamily
           }
           Row {
             width: parent.width

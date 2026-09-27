@@ -8,6 +8,8 @@ BarWidget {
   moduleName: "keycast"
 
   property var service: null
+  // KeyboardPanel reads this to skip its fade while a layout switch unmaps it.
+  property bool popoutSwitchClosing: false
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
   readonly property bool overlayOn: service ? service.overlayEnabled === true
     : Keys.normalizeSettings(root.settings).overlayEnabled

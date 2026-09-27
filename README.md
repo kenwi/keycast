@@ -91,7 +91,7 @@ value switches to Custom.*
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for Overlay, Position, Colors, Mouse, Ignore, and the Hyprland bridge
 - Ignore tab: record a chord by holding it for half a second. That exact combination stays off the overlay. Select one in the list and remove it, or remove all
-- Settings layout: Side is the narrow panel beside the bar. Center is a wide box in the middle of the screen, with each page arranged in columns
+- Settings layout: Side is the panel beside the bar. Center is a wide box in the middle of the screen. Fullscreen fills the screen around the bar, and each page spreads into that space
 - IPC: `omarchy-shell keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell keycast settings` opens or closes the settings panel
 
 ## Privacy
@@ -195,7 +195,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `horizontal` | `left` / `middle` / `right` | `middle` |
 | `overlayMonitor` | `all` / `focused` / `specific` | `all` |
 | `overlayMonitorName` | Hyprland connector, such as `DP-1` | empty |
-| `settingsLayout` | `side` / `center` | `side` |
+| `settingsLayout` | `side` / `center` / `fullscreen` | `side` |
 | `ignoredChords` | comma-separated keycode chords, such as `38+133` | empty |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
