@@ -8,6 +8,7 @@ var EMPTY_LABELS = []
 var VERTICALS = ["top", "middle", "bottom"]
 var HORIZONTALS = ["left", "middle", "right"]
 var MONITOR_MODES = ["all", "focused", "specific"]
+var SETTINGS_LAYOUTS = ["side", "center"]
 var ACTION_POSITIONS = ["above", "below"]
 var COLOR_THEMES = ["shell", "dark", "light", "contrast", "nord", "mocha", "gold", "neon", "matrix", "vapor", "cyber", "ember", "ice", "custom"]
 var THEME_LABELS = {
@@ -784,6 +785,7 @@ function normalizeSettings(entry) {
     horizontal: pickChoice(src.horizontal, HORIZONTALS, "middle"),
     overlayMonitor: pickChoice(src.overlayMonitor, MONITOR_MODES, "all"),
     overlayMonitorName: String(src.overlayMonitorName == null ? "" : src.overlayMonitorName).trim(),
+    settingsLayout: pickChoice(src.settingsLayout, SETTINGS_LAYOUTS, "side"),
     padding: clampInt(src.padding, 0, 400, 24),
     scale: scale,
     scaleCustom: scaleCustom,

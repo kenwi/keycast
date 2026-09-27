@@ -46,31 +46,49 @@ Panel {
     fontChoices = Keys.fontOptions(Qt.fontFamilies())
   }
 
+  readonly property string settingsLayout: service && service.settingsLayout === "center" ? "center" : "side"
+  readonly property bool wideLayout: settingsLayout === "center"
+
   function open() {
     refreshFontChoices()
     if (service && typeof service.inspectBridge === "function") service.inspectBridge()
-    if (scroll) scroll.contentY = 0
+    if (settingsForm.formScroll) settingsForm.formScroll.contentY = 0
     controller.show()
     syncPreview()
+    syncPanels()
   }
 
   function close() {
     controller.hide()
     syncPreview()
+    syncPanels()
   }
   function toggle() { if (opened) close(); else open() }
   function closeForPopoutSwitch() { close() }
 
+  function syncPanels() {
+    sidePanel.open = opened === true && !wideLayout
+    centerPanel.open = opened === true && wideLayout
+  }
+
   onBarChanged: syncService()
-  onOpenedChanged: syncPreview()
+  onOpenedChanged: {
+    syncPreview()
+    syncPanels()
+  }
   onServiceChanged: syncPreview()
+  onWideLayoutChanged: {
+    syncPanels()
+    if (settingsForm.formScroll) settingsForm.formScroll.contentY = 0
+  }
   onSettingsPageChanged: {
-    if (scroll) scroll.contentY = 0
+    if (settingsForm.formScroll) settingsForm.formScroll.contentY = 0
     if (settingsPage === "overlay") refreshFontChoices()
   }
   Component.onCompleted: {
     syncService()
     refreshFontChoices()
+    syncPanels()
   }
 
   Timer {
@@ -80,839 +98,59 @@ Panel {
     onTriggered: root.syncService()
   }
 
+
+  SettingsForm {
+    id: settingsForm
+    parent: root.wideLayout ? centerSlot : sideSlot
+    anchors.fill: parent
+    host: root
+    wide: root.wideLayout
+  }
+
   KeyboardPanel {
-    id: panel
+    id: sidePanel
     anchorItem: root.hostWidget || root.anchorItem
     owner: root.hostWidget || root
     bar: root.bar || (root.hostWidget ? root.hostWidget.bar : null)
-    open: root.opened
+    open: false
     centerOnBar: false
-    focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(400))
-    contentHeight: panel.fittedContentHeight(contentColumn.implicitHeight,
-      panel.availableCardHeight > 0 ? panel.availableCardHeight : Style.space(560))
+    focusTarget: sideCatcher
+    contentWidth: sidePanel.fittedContentWidth(Style.space(400))
+    contentHeight: sidePanel.fittedContentHeight(settingsForm.formHeight,
+      sidePanel.availableCardHeight > 0 ? sidePanel.availableCardHeight : Style.space(560))
 
     PanelKeyCatcher {
-      id: keyCatcher
+      id: sideCatcher
       anchors.fill: parent
-      blocked: fontDropdown.popupOpen || bgHex.activeFocus || borderHex.activeFocus || fontHex.activeFocus || scaleField.field.activeFocus
+      blocked: settingsForm.fieldBusy
       onCloseRequested: root.close()
 
-      Flickable {
-        id: scroll
+      Item {
+        id: sideSlot
         anchors.fill: parent
-        contentWidth: width
-        contentHeight: contentColumn.implicitHeight
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-        flickableDirection: Flickable.VerticalFlick
-        interactive: contentHeight > height
+      }
+    }
+  }
 
-        Column {
-          id: contentColumn
-          width: scroll.width
-          spacing: Style.space(12)
+  WidePanel {
+    id: centerPanel
+    anchorItem: root.hostWidget || root.anchorItem
+    owner: root.hostWidget || root
+    bar: root.bar || (root.hostWidget ? root.hostWidget.bar : null)
+    open: false
+    focusTarget: centerCatcher
+    contentWidth: centerPanel.fittedContentWidth(centerPanel.centerBoxWidth)
+    contentHeight: centerPanel.fittedContentHeight(centerPanel.centerBoxHeight, centerPanel.centerBoxHeight)
 
-          Column {
-            width: parent.width
-            spacing: Style.space(3)
+    PanelKeyCatcher {
+      id: centerCatcher
+      anchors.fill: parent
+      blocked: settingsForm.fieldBusy
+      onCloseRequested: root.close()
 
-            Text {
-              width: parent.width
-              textFormat: Text.PlainText
-              text: "KEYCAST"
-              color: root.fg
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.title
-              font.bold: true
-            }
-            Text {
-              width: parent.width
-              textFormat: Text.PlainText
-              text: root.bridgeSummary
-              color: root.fg
-              opacity: 0.78
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              wrapMode: Text.WordWrap
-            }
-          }
-
-          Column {
-            visible: !root.bridgeReady
-            width: parent.width
-            spacing: Style.space(8)
-
-            Text {
-              width: parent.width
-              textFormat: Text.PlainText
-              text: "Keycast needs a three-line observer in your Hyprland config. It reports currently held keycodes to the shell. The overlay displays them only while it is enabled, and nothing is written to disk."
-              color: root.fg
-              opacity: 0.78
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-              wrapMode: Text.WordWrap
-            }
-
-            Button {
-              width: parent.width
-              text: service && service.bridgeBusy ? "Working…" : "Enable Hyprland bridge"
-              selected: true
-              enabled: !!root.service && !root.service.bridgeBusy && root.service.bridgeState !== "review"
-              onClicked: if (root.service) root.service.enableBridge()
-            }
-
-            Button {
-              width: parent.width
-              visible: !!root.service && root.service.manualSnippet !== ""
-              text: "Copy manual snippet"
-              onClicked: Quickshell.execDetached(["bash", "-c", "printf %s " + Util.shellQuote(root.service.manualSnippet) + " | wl-copy"])
-            }
-          }
-
-          Column {
-            visible: root.bridgeReady
-            width: parent.width
-            spacing: Style.space(10)
-
-            Flow {
-              width: parent.width
-              spacing: Style.spacing.md
-
-              Repeater {
-                model: [
-                  { value: "overlay", label: "Overlay" },
-                  { value: "position", label: "Position" },
-                  { value: "colors", label: "Colors" },
-                  { value: "mouse", label: "Mouse" }
-                ]
-
-                delegate: Button {
-                  required property var modelData
-                  text: modelData.label
-                  selected: root.settingsPage === modelData.value
-                  bordered: true
-                  foreground: root.fg
-                  fontFamily: root.fontFamily
-                  onClicked: root.settingsPage = modelData.value
-                }
-              }
-            }
-
-            Column {
-              visible: root.settingsPage === "overlay"
-              width: parent.width
-              spacing: Style.space(10)
-
-              Toggle {
-                width: parent.width
-                label: "Show pressed keys"
-                description: "Left-click the bar icon or Super+Shift+K to toggle."
-                checked: root.overlayOn
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setOverlayEnabled(!root.overlayOn)
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Show typed characters"
-                description: "! instead of Shift+1, using this keyboard's layout. Super, Ctrl, and left Alt stay as key names."
-                checked: root.service ? root.service.showTyped === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setShowTyped(!(root.service.showTyped === true))
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Always show uppercase"
-                description: "With typed characters on, letters show as A instead of a. Symbols such as ! stay as typed."
-                checked: root.service ? root.service.showUppercase === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setShowUppercase(!(root.service.showUppercase === true))
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Show while recording"
-                description: "Turn the overlay on with Omarchy's screen recorder, and off again when that take ends."
-                checked: root.service ? root.service.showWhileRecording === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setShowWhileRecording(!(root.service.showWhileRecording === true))
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Preview keypress"
-                description: "Show a sample hotkey on the overlay while this panel is open."
-                checked: root.previewSettingOn
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: {
-                  if (!root.service) return
-                  root.service.setPreviewEnabled(!root.previewSettingOn)
-                  root.syncPreview()
-                }
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Outer box"
-                description: "Background and border around the keycaps."
-                checked: root.service ? root.service.frameEnabled === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setFrameEnabled(!(root.service.frameEnabled === true))
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Rounded corners"
-                description: "Round the outer box and keycaps."
-                checked: root.service ? root.service.roundingEnabled !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setRoundingEnabled(!(root.service.roundingEnabled !== false))
-              }
-
-              NumberField {
-                width: parent.width
-                label: "Corner radius (px)"
-                value: root.service ? root.service.rounding : 8
-                from: 0
-                to: 32
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setRounding(value) }
-              }
-
-              FontDropdown {
-                id: fontDropdown
-                width: parent.width
-                label: "Font"
-                placeholderText: "Search fonts"
-                emptyText: "No matching fonts"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.fontFamily : "shell"
-                options: root.fontChoices
-                onChanged: function(value) { if (root.service) root.service.setFontFamily(value) }
-              }
-              Text {
-                width: parent.width
-                textFormat: Text.PlainText
-                text: "Shell uses the Omarchy UI font. Other entries are fonts installed on this system."
-                color: root.fg
-                opacity: 0.78
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
-              }
-
-              NumberField {
-                width: parent.width
-                label: "Linger after release (ms)"
-                value: root.service ? root.service.lingerMs : 600
-                from: 0
-                to: 2000
-                stepSize: 50
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setLingerMs(value) }
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Show shortcut action"
-                description: "Hyprland bind description, same source as Super+K."
-                checked: root.service ? root.service.actionEnabled !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setActionEnabled(!(root.service.actionEnabled !== false))
-              }
-
-              PanelSectionHeader {
-                text: "ACTION PLACEMENT"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.actionPosition : "above"
-                options: [
-                  { value: "above", label: "Above" },
-                  { value: "below", label: "Below" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setActionPosition(value) }
-              }
-
-              PanelSeparator { width: parent.width; strength: 0.09 }
-
-              Button {
-                width: parent.width
-                text: service && service.bridgeBusy ? "Working…" : "Remove Hyprland bridge"
-                enabled: !!root.service && !root.service.bridgeBusy
-                onClicked: if (root.service) root.service.disableBridge()
-              }
-            }
-
-            Column {
-              visible: root.settingsPage === "position"
-              width: parent.width
-              spacing: Style.space(10)
-
-              PanelSectionHeader {
-                text: "MONITOR"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.overlayMonitor : "all"
-                options: [
-                  { value: "all", label: "All" },
-                  { value: "focused", label: "Focused" },
-                  { value: "specific", label: "Specific" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setOverlayMonitor(value) }
-              }
-              Text {
-                width: parent.width
-                textFormat: Text.PlainText
-                text: {
-                  var mode = root.service ? String(root.service.overlayMonitor || "all") : "all"
-                  if (mode === "focused") return "Only the monitor Hyprland has focused."
-                  if (mode === "specific") return "Only the monitor you pick. That choice stays if the display is unplugged."
-                  return "Every connected monitor."
-                }
-                color: root.fg
-                opacity: 0.78
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
-              }
-              Text {
-                width: parent.width
-                textFormat: Text.PlainText
-                text: {
-                  var live = Keys.monitorOptions(root.service ? root.service.monitorChoices : [], "")
-                  if (live.length === 0) return "No monitors detected yet."
-                  var names = []
-                  for (var i = 0; i < live.length; i++) names.push(live[i].name)
-                  return "Connected: " + names.join(", ")
-                }
-                color: root.fg
-                opacity: 0.78
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
-              }
-              Flow {
-                width: parent.width
-                spacing: Style.spacing.md
-                visible: root.service && root.service.overlayMonitor === "specific"
-
-                Repeater {
-                  model: Keys.monitorOptions(
-                    root.service ? root.service.monitorChoices : [],
-                    root.service ? root.service.overlayMonitorName : "")
-
-                  Button {
-                    required property var modelData
-                    text: modelData.label
-                    selected: root.service && root.service.overlayMonitorName === String(modelData.name)
-                    bordered: true
-                    foreground: root.fg
-                    fontFamily: root.fontFamily
-                    onClicked: if (root.service) root.service.setOverlayMonitorName(modelData.name)
-                  }
-                }
-              }
-
-              PanelSectionHeader {
-                text: "VERTICAL"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.vertical : "bottom"
-                options: [
-                  { value: "top", label: "Top" },
-                  { value: "middle", label: "Middle" },
-                  { value: "bottom", label: "Bottom" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setVertical(value) }
-              }
-
-              PanelSectionHeader {
-                text: "HORIZONTAL"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.horizontal : "middle"
-                options: [
-                  { value: "left", label: "Left" },
-                  { value: "middle", label: "Middle" },
-                  { value: "right", label: "Right" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setHorizontal(value) }
-              }
-
-              NumberField {
-                width: parent.width
-                label: "Edge padding (px)"
-                value: root.service ? root.service.padding : 24
-                from: 0
-                to: 400
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setPadding(value) }
-              }
-
-              PanelSectionHeader {
-                text: "SCALE"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.scaleChoice : "1"
-                options: [
-                  { value: "1", label: "1x" },
-                  { value: "1.25", label: "1.25x" },
-                  { value: "1.5", label: "1.5x" },
-                  { value: "1.75", label: "1.75x" },
-                  { value: "2", label: "2x" },
-                  { value: "custom", label: "Custom" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setScale(value) }
-              }
-              ScaleField {
-                id: scaleField
-                width: parent.width
-                visible: root.service && root.service.scaleCustom === true
-                label: "Custom scale"
-                value: root.service ? root.service.scaleFactor : 1
-                from: 0.5
-                to: 5
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setCustomScale(value) }
-              }
-            }
-
-            Column {
-              visible: root.settingsPage === "mouse"
-              width: parent.width
-              spacing: Style.space(10)
-
-              Toggle {
-                width: parent.width
-                label: "Show mouse"
-                description: "Clicks and scroll stay on screen with the keys. They still reach the window."
-                checked: root.service ? root.service.mouseEnabled !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseEnabled", !(root.service.mouseEnabled !== false))
-              }
-
-              PanelSectionHeader {
-                text: "PLACEMENT"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.mousePlacement : "inline"
-                options: [
-                  { value: "inline", label: "Inline" },
-                  { value: "above", label: "Above" },
-                  { value: "below", label: "Below" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setMousePlacement(value) }
-              }
-
-              PanelSectionHeader {
-                text: "LABELS"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              ButtonGroup {
-                width: parent.width
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                value: root.service ? root.service.mouseLabelStyle : "short"
-                options: [
-                  { value: "short", label: "Short" },
-                  { value: "name", label: "Name" }
-                ]
-                onChanged: function(value) { if (root.service) root.service.setMouseLabelStyle(value) }
-              }
-
-              Toggle {
-                width: parent.width
-                label: "Only while a key is shown"
-                description: "Hide mouse labels unless a keyboard chord is on screen."
-                checked: root.service ? root.service.mouseRequireKeys === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRequireKeys", !(root.service.mouseRequireKeys === true))
-              }
-
-              NumberField {
-                width: parent.width
-                label: "Mouse linger (ms)"
-                value: root.service ? root.service.mouseLingerMs : 500
-                from: 0
-                to: 2000
-                stepSize: 50
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setMouseLingerMs(value) }
-              }
-
-              PanelSectionHeader {
-                text: "BUTTONS"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              Toggle {
-                width: parent.width
-                label: "Left"
-                checked: root.service ? root.service.mouseLeft !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseLeft", !(root.service.mouseLeft !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Right"
-                checked: root.service ? root.service.mouseRight !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRight", !(root.service.mouseRight !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Middle"
-                checked: root.service ? root.service.mouseMiddle !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseMiddle", !(root.service.mouseMiddle !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Back"
-                checked: root.service ? root.service.mouseBack === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseBack", !(root.service.mouseBack === true))
-              }
-              Toggle {
-                width: parent.width
-                label: "Forward"
-                checked: root.service ? root.service.mouseForward === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseForward", !(root.service.mouseForward === true))
-              }
-
-              PanelSectionHeader {
-                text: "SCROLL"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              Toggle {
-                width: parent.width
-                label: "Scroll up"
-                checked: root.service ? root.service.mouseWheelUp !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelUp", !(root.service.mouseWheelUp !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Scroll down"
-                checked: root.service ? root.service.mouseWheelDown !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelDown", !(root.service.mouseWheelDown !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Scroll left"
-                checked: root.service ? root.service.mouseWheelLeft === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelLeft", !(root.service.mouseWheelLeft === true))
-              }
-              Toggle {
-                width: parent.width
-                label: "Scroll right"
-                checked: root.service ? root.service.mouseWheelRight === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseWheelRight", !(root.service.mouseWheelRight === true))
-              }
-
-              PanelSectionHeader {
-                text: "RIPPLE"
-                foreground: root.fg
-                fontFamily: root.fontFamily
-              }
-              Toggle {
-                width: parent.width
-                label: "Ripple at the cursor"
-                description: "A ring where you click. Scroll ripples are separate."
-                checked: root.service ? root.service.mouseRipple !== false : true
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRipple", !(root.service.mouseRipple !== false))
-              }
-              Toggle {
-                width: parent.width
-                label: "Ripple on scroll"
-                checked: root.service ? root.service.mouseRippleScroll === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleScroll", !(root.service.mouseRippleScroll === true))
-              }
-              Toggle {
-                width: parent.width
-                label: "Follow a drag"
-                description: "Move the click ripple with the cursor while the button is held. Follow rate is how often it catches up. Lower is smoother."
-                checked: root.service ? root.service.mouseRippleFollow === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleFollow", !(root.service.mouseRippleFollow === true))
-              }
-              NumberField {
-                width: parent.width
-                label: "Follow rate (ms)"
-                value: root.service ? root.service.mouseRippleFollowMs : 16
-                from: 8
-                to: 64
-                stepSize: 8
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setMouseRippleFollowMs(value) }
-              }
-              NumberField {
-                width: parent.width
-                label: "Ripple size (px)"
-                value: root.service ? root.service.mouseRippleSize : 36
-                from: 8
-                to: 160
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setMouseRippleSize(value) }
-              }
-              Toggle {
-                width: parent.width
-                label: "Fade out"
-                description: "Lower the ring's opacity across the ripple linger. Off, it stays solid until it disappears."
-                checked: root.service ? root.service.mouseRippleFade === true : false
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onClicked: if (root.service) root.service.setMouseFlag("mouseRippleFade", !(root.service.mouseRippleFade === true))
-              }
-              NumberField {
-                width: parent.width
-                label: "Ripple linger (ms)"
-                value: root.service ? root.service.mouseRippleMs : 400
-                from: 100
-                to: 2000
-                stepSize: 50
-                foreground: root.fg
-                fontFamily: root.fontFamily
-                onModified: function(value) { if (root.service) root.service.setMouseRippleMs(value) }
-              }
-            }
-
-            Column {
-              visible: root.settingsPage === "colors"
-              width: parent.width
-              spacing: Style.space(10)
-
-              Column {
-                width: parent.width
-                spacing: Style.spacing.md
-
-                Text {
-                  textFormat: Text.PlainText
-                  text: "Theme"
-                  color: Qt.darker(root.fg, 1.4)
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.caption
-                  font.bold: true
-                }
-                Flow {
-                  width: parent.width
-                  spacing: Style.spacing.md
-
-                  Repeater {
-                    model: Keys.themeOptions()
-
-                    Button {
-                      required property var modelData
-                      text: modelData.label
-                      selected: root.service && root.service.colorTheme === String(modelData.value)
-                      bordered: true
-                      foreground: root.fg
-                      fontFamily: root.fontFamily
-                      onClicked: if (root.service) root.service.setColorTheme(modelData.value)
-                    }
-                  }
-                }
-              }
-              Text {
-                width: parent.width
-                textFormat: Text.PlainText
-                text: "Shell follows the Omarchy theme and fills the hex fields with those colors. Presets fill the hex fields. Editing a hex switches to Custom."
-                color: root.fg
-                opacity: 0.78
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.caption
-                wrapMode: Text.WordWrap
-              }
-
-              Column {
-                width: parent.width
-                spacing: Style.space(4)
-
-                Text {
-                  textFormat: Text.PlainText
-                  text: "Background"
-                  color: Qt.darker(root.fg, 1.4)
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.bodySmall
-                }
-                Row {
-                  width: parent.width
-                  spacing: Style.space(8)
-                  Rectangle {
-                    width: Style.space(28)
-                    height: Style.space(28)
-                    radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.displayBackgroundColor : "#1A1A1A", Color.background)
-                    border.color: root.fg
-                    border.width: 1
-                  }
-                  TextField {
-                    id: bgHex
-                    width: parent.width - Style.space(36)
-                    foreground: root.fg
-                    font.family: root.fontFamily
-                    onEditingFinished: if (root.service) root.service.setBackgroundColor(text)
-                    onAccepted: if (root.service) root.service.setBackgroundColor(text)
-                  }
-                  Binding {
-                    target: bgHex
-                    property: "text"
-                    value: root.service ? root.service.displayBackgroundColor : "#1A1A1A"
-                    when: !bgHex.activeFocus
-                  }
-                }
-              }
-
-              Column {
-                width: parent.width
-                spacing: Style.space(4)
-
-                Text {
-                  textFormat: Text.PlainText
-                  text: "Border"
-                  color: Qt.darker(root.fg, 1.4)
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.bodySmall
-                }
-                Row {
-                  width: parent.width
-                  spacing: Style.space(8)
-                  Rectangle {
-                    width: Style.space(28)
-                    height: Style.space(28)
-                    radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.displayBorderColor : "#6E6E6E", Color.popups.border)
-                    border.color: root.fg
-                    border.width: 1
-                  }
-                  TextField {
-                    id: borderHex
-                    width: parent.width - Style.space(36)
-                    foreground: root.fg
-                    font.family: root.fontFamily
-                    onEditingFinished: if (root.service) root.service.setBorderColor(text)
-                    onAccepted: if (root.service) root.service.setBorderColor(text)
-                  }
-                  Binding {
-                    target: borderHex
-                    property: "text"
-                    value: root.service ? root.service.displayBorderColor : "#6E6E6E"
-                    when: !borderHex.activeFocus
-                  }
-                }
-              }
-
-              Column {
-                width: parent.width
-                spacing: Style.space(4)
-
-                Text {
-                  textFormat: Text.PlainText
-                  text: "Font"
-                  color: Qt.darker(root.fg, 1.4)
-                  font.family: root.fontFamily
-                  font.pixelSize: Style.font.bodySmall
-                }
-                Row {
-                  width: parent.width
-                  spacing: Style.space(8)
-                  Rectangle {
-                    width: Style.space(28)
-                    height: Style.space(28)
-                    radius: Style.cornerRadius
-                    color: Style.colorFromHex(root.service ? root.service.displayFontColor : "#F5F5F5", Color.popups.text)
-                    border.color: root.fg
-                    border.width: 1
-                  }
-                  TextField {
-                    id: fontHex
-                    width: parent.width - Style.space(36)
-                    foreground: root.fg
-                    font.family: root.fontFamily
-                    onEditingFinished: if (root.service) root.service.setFontColor(text)
-                    onAccepted: if (root.service) root.service.setFontColor(text)
-                  }
-                  Binding {
-                    target: fontHex
-                    property: "text"
-                    value: root.service ? root.service.displayFontColor : "#F5F5F5"
-                    when: !fontHex.activeFocus
-                  }
-                }
-              }
-            }
-          }
-        }
+      Item {
+        id: centerSlot
+        anchors.fill: parent
       }
     }
   }

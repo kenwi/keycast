@@ -17,6 +17,11 @@ BarWidget {
     service = bar && bar.shell && typeof bar.shell.serviceFor === "function"
       ? bar.shell.serviceFor(moduleName) : null
     pushSettings()
+    publishSettings()
+  }
+
+  function publishSettings() {
+    if (service) service.settingsPanel = panelLoader.item
   }
 
   function pushSettings() {
@@ -78,6 +83,7 @@ BarWidget {
       item.anchorItem = root
       item.hostWidget = root
       item.service = root.service
+      root.publishSettings()
     }
   }
 

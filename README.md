@@ -61,7 +61,8 @@ switches to Custom.*
 - Optional show while recording: the overlay follows Omarchy's screen recorder (`gpu-screen-recorder`). It turns off when the take ends only if Keycast turned it on. A manual overlay stays as you left it
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for Overlay, Position, Colors, Mouse, and the Hyprland bridge
-- IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`)
+- Settings layout: Side is the narrow panel beside the bar. Center is a wide box in the middle of the screen, with each page arranged in columns
+- IPC: `omarchy-shell local.keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell local.keycast settings` opens or closes the settings panel
 
 ## Privacy
 
@@ -97,14 +98,15 @@ is free in Omarchy defaults and stays next to that:
 
 ```lua
 o.bind("SUPER + SHIFT + K", "Toggle keycast", "omarchy-shell local.keycast toggle")
+o.bind("SUPER + SHIFT + L", "Keycast settings", "omarchy-shell local.keycast settings")
 ```
 
 Reload Hyprland after saving. The description appears in Super+K. Pick any unused
-combo if you already bound that one. One-way variants:
+combo if you already bound that one. One-way variants for the overlay:
 
 ```lua
 o.bind("SUPER + SHIFT + K", "Show keycast", "omarchy-shell local.keycast show")
-o.bind("SUPER + SHIFT + L", "Hide keycast", "omarchy-shell local.keycast hide")
+o.bind("SUPER + SHIFT + J", "Hide keycast", "omarchy-shell local.keycast hide")
 ```
 
 ## Settings
@@ -125,6 +127,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "horizontal": "middle",
   "overlayMonitor": "all",
   "overlayMonitorName": "",
+  "settingsLayout": "side",
   "padding": 24,
   "scale": 1,
   "scaleCustom": false,
@@ -160,6 +163,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `horizontal` | `left` / `middle` / `right` | `middle` |
 | `overlayMonitor` | `all` / `focused` / `specific` | `all` |
 | `overlayMonitorName` | Hyprland connector, such as `DP-1` | empty |
+| `settingsLayout` | `side` / `center` | `side` |
 | `padding` | 0-400 px | `24` (ignored on a middle axis) |
 | `scale` | `1` / `1.25` / `1.5` / `1.75` / `2`, or `0.5`-`5` when custom | `1` |
 | `scaleCustom` | `true` / `false` | `false` |
@@ -221,7 +225,9 @@ omarchy-shell local.keycast toggle
 | `Overlay.qml` | Click-through corner box on the chosen monitors |
 | `KeycastCard.qml` | Keycap card drawn by the overlay |
 | `BarWidget.qml` | Toggle + settings panel host |
-| `Panel.qml` | Bridge setup, overlay, position, colors, and mouse pages |
+| `Panel.qml` | Side panel and centered wide panel |
+| `SettingsForm.qml` | Overlay, position, colors, and mouse controls |
+| `WidePanel.qml` | Centered settings window |
 | `Keys.js` | Keycode labels, typed characters, protocol parse, bind catalog, settings normalize |
 | `scripts/typed-chars` | Active layout characters for the typed overlay |
 | `bridge.lua` | Hyprland keyboard observer and non-consuming mouse binds |

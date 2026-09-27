@@ -31,6 +31,7 @@
       "horizontal": "middle",
       "overlayMonitor": "all",
       "overlayMonitorName": "",
+      "settingsLayout": "side",
       "padding": 24,
       "scale": 1,
       "scaleCustom": false,
@@ -132,6 +133,14 @@
         "description": "all, the focused monitor, or one specific monitor",
         "options": ["all", "focused", "specific"],
         "defaultValue": "all"
+      },
+      {
+        "key": "settingsLayout",
+        "type": "enum",
+        "label": "Settings layout",
+        "description": "side keeps the narrow panel beside the bar. center opens a wide box in the middle of the screen",
+        "options": ["side", "center"],
+        "defaultValue": "side"
       },
       {
         "key": "overlayMonitorName",
@@ -287,13 +296,13 @@
       {
         "key": "mouseRequireKeys",
         "type": "boolean",
-        "label": "Only while a key is shown",
+        "label": "Only with keys",
         "defaultValue": false
       },
       {
         "key": "mouseRipple",
         "type": "boolean",
-        "label": "Ripple at the cursor",
+        "label": "Ripple at cursor",
         "defaultValue": true
       },
       {

@@ -22,6 +22,7 @@ Item {
   property var heldCodes: []
   property bool captureRecording: false
   property bool openedForRecording: false
+  property var settingsPanel: null
   property bool frameEnabled: false
   property bool roundingEnabled: true
   property int rounding: 8
@@ -29,6 +30,7 @@ Item {
   property string horizontal: "middle"
   property string overlayMonitor: "all"
   property string overlayMonitorName: ""
+  property string settingsLayout: "side"
   property string focusedMonitorName: ""
   property var monitorChoices: []
   property int padding: 24
@@ -177,6 +179,7 @@ Item {
     horizontal = next.horizontal
     overlayMonitor = next.overlayMonitor
     overlayMonitorName = next.overlayMonitorName
+    settingsLayout = next.settingsLayout
     padding = next.padding
     scaleFactor = next.scale
     scaleCustom = next.scaleCustom === true
@@ -240,6 +243,7 @@ Item {
       horizontal: horizontal,
       overlayMonitor: overlayMonitor,
       overlayMonitorName: overlayMonitorName,
+      settingsLayout: settingsLayout,
       padding: padding,
       scale: scaleFactor,
       scaleCustom: scaleCustom,
@@ -406,6 +410,12 @@ Item {
     return persistSettings(changes)
   }
 
+  function setSettingsLayout(value) {
+    var next = Keys.normalizeSettings({ settingsLayout: value }).settingsLayout
+    if (next === settingsLayout) return false
+    return persistSettings({ settingsLayout: next })
+  }
+
   function setOverlayMonitorName(value) {
     var next = Keys.normalizeSettings({ overlayMonitorName: value }).overlayMonitorName
     if (next === overlayMonitorName && overlayMonitor === "specific") return false
@@ -522,6 +532,12 @@ Item {
 
   function toggleOverlay() {
     return setOverlayEnabled(!overlayEnabled)
+  }
+
+  function toggleSettings() {
+    if (!settingsPanel || typeof settingsPanel.toggle !== "function") return false
+    settingsPanel.toggle()
+    return settingsPanel.opened === true
   }
 
   function pickPreview() {
@@ -994,6 +1010,10 @@ Item {
     function show(): string { root.setOverlayEnabled(true); return root.overlayEnabled ? "on" : "off" }
     function hide(): string { root.setOverlayEnabled(false); return "off" }
     function toggle(): string { root.toggleOverlay(); return root.overlayEnabled ? "on" : "off" }
+    function settings(): string {
+      if (!root.settingsPanel) return "unavailable"
+      return root.toggleSettings() ? "open" : "closed"
+    }
     function state(): string { return root.overlayEnabled ? "on" : "off" }
     function ping(): string { return "ok" }
   }
