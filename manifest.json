@@ -23,6 +23,7 @@
       "overlayEnabled": false,
       "showWhileRecording": false,
       "showTyped": false,
+      "showUppercase": false,
       "frameEnabled": false,
       "roundingEnabled": true,
       "rounding": 8,
@@ -79,6 +80,12 @@
         "key": "showTyped",
         "type": "boolean",
         "label": "Show typed characters",
+        "defaultValue": false
+      },
+      {
+        "key": "showUppercase",
+        "type": "boolean",
+        "label": "Always show uppercase",
         "defaultValue": false
       },
       {

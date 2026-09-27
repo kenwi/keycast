@@ -428,6 +428,14 @@ function typedChord(codes, table, caps) {
   return out
 }
 
+function uppercaseLabels(labels) {
+  if (!Array.isArray(labels)) return []
+  var out = []
+  for (var i = 0; i < labels.length; i++)
+    out.push(String(labels[i] == null ? "" : labels[i]).toUpperCase())
+  return out
+}
+
 function labelsForCodes(codes) {
   if (!Array.isArray(codes)) return []
   var seenMod = {}
@@ -736,6 +744,7 @@ function normalizeSettings(entry) {
     overlayEnabled: isEnabledFlag(src.overlayEnabled),
     showWhileRecording: flagOr(src.showWhileRecording, false),
     showTyped: flagOr(src.showTyped, false),
+    showUppercase: flagOr(src.showUppercase, false),
     frameEnabled: frameRaw === undefined || frameRaw === null || frameRaw === ""
       ? false : isEnabledFlag(frameRaw),
     roundingEnabled: src.roundingEnabled === undefined || src.roundingEnabled === null || src.roundingEnabled === ""
@@ -935,6 +944,7 @@ if (typeof module !== "undefined") {
     labelFor: labelFor,
     labelsForCodes: labelsForCodes,
     typedChord: typedChord,
+    uppercaseLabels: uppercaseLabels,
     parseProtocol: parseProtocol,
     parsePointer: parsePointer,
     pointerLabel: pointerLabel,

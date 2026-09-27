@@ -42,7 +42,7 @@ switches to Custom.*
 ## Features
 
 - Shows the keys that are currently held, not a typing history
-- Optional typed characters: Shift+1 shows `!` from the active keyboard layout. Super, Ctrl, and left Alt chords stay as key names
+- Optional typed characters: Shift+1 shows `!` from the active keyboard layout. Super, Ctrl, and left Alt chords stay as key names. Always show uppercase turns those letters into `A` while symbols stay as typed
 - Default position: bottom middle
 - Configurable vertical edge (`top` / `middle` / `bottom`)
 - Configurable horizontal edge (`left` / `middle` / `right`)
@@ -116,6 +116,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
   "overlayEnabled": false,
   "showWhileRecording": false,
   "showTyped": false,
+  "showUppercase": false,
   "frameEnabled": false,
   "roundingEnabled": true,
   "rounding": 8,
@@ -148,6 +149,7 @@ Persisted on the bar entry in `~/.config/omarchy/shell.json`:
 | `overlayEnabled` | `true` / `false` | `false` |
 | `showWhileRecording` | `true` / `false` | `false` |
 | `showTyped` | `true` / `false` | `false` |
+| `showUppercase` | `true` / `false` | `false` |
 | `frameEnabled` | `true` / `false` | `false` |
 | `roundingEnabled` | `true` / `false` | `true` |
 | `rounding` | 0-32 px | `8` |

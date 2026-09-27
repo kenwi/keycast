@@ -226,6 +226,16 @@ Panel {
 
               Toggle {
                 width: parent.width
+                label: "Always show uppercase"
+                description: "With typed characters on, letters show as A instead of a. Symbols such as ! stay as typed."
+                checked: root.service ? root.service.showUppercase === true : false
+                foreground: root.fg
+                fontFamily: root.fontFamily
+                onClicked: if (root.service) root.service.setShowUppercase(!(root.service.showUppercase === true))
+              }
+
+              Toggle {
+                width: parent.width
                 label: "Show while recording"
                 description: "Turn the overlay on with Omarchy's screen recorder, and off again when that take ends."
                 checked: root.service ? root.service.showWhileRecording === true : false

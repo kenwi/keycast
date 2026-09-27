@@ -15,6 +15,7 @@ Item {
   property bool overlayEnabled: false
   property bool showWhileRecording: false
   property bool showTyped: false
+  property bool showUppercase: false
   property bool typedCaps: false
   property var typedTable: ({})
   property var displayedCodes: []
@@ -99,6 +100,7 @@ Item {
     if (!displayedKeys || displayedKeys.length === 0) return names
     var typed = Keys.typedChord(displayedCodes, typedTable, typedCaps)
     if (!typed || typed.length === 0) return names
+    if (showUppercase === true) return Keys.uppercaseLabels(typed)
     return typed
   }
   readonly property var displayedMouseLabels: {
@@ -163,6 +165,7 @@ Item {
     showWhileRecording = next.showWhileRecording
     if (!showWhileRecording) openedForRecording = false
     showTyped = next.showTyped
+    showUppercase = next.showUppercase
     frameEnabled = next.frameEnabled
     roundingEnabled = next.roundingEnabled
     rounding = next.rounding
@@ -223,6 +226,7 @@ Item {
       overlayEnabled: overlayEnabled,
       showWhileRecording: showWhileRecording,
       showTyped: showTyped,
+      showUppercase: showUppercase,
       frameEnabled: frameEnabled,
       roundingEnabled: roundingEnabled,
       rounding: rounding,
@@ -285,6 +289,12 @@ Item {
     var saved = persistSettings({ showTyped: next })
     if (next) refreshTyped()
     return saved
+  }
+
+  function setShowUppercase(value) {
+    var next = Keys.normalizeSettings({ showUppercase: value }).showUppercase
+    if (next === showUppercase) return false
+    return persistSettings({ showUppercase: next })
   }
 
   function refreshTyped() {
