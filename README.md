@@ -61,7 +61,7 @@ switches to Custom.*
 - Optional show while recording: the overlay follows Omarchy's screen recorder (`gpu-screen-recorder`). It turns off when the take ends only if Keycast turned it on. A manual overlay stays as you left it
 - Left-click the bar icon to toggle the overlay
 - Right-click the bar icon for Overlay, Position, Colors, Mouse, Ignore, and the Hyprland bridge
-- Ignore tab: record a chord by holding it for half a second. That exact combination stays off the overlay. Select one in the list and remove it
+- Ignore tab: record a chord by holding it for half a second. That exact combination stays off the overlay. Select one in the list and remove it, or remove all
 - Settings layout: Side is the narrow panel beside the bar. Center is a wide box in the middle of the screen, with each page arranged in columns
 - IPC: `omarchy-shell keycast toggle` (also `show`, `hide`, `state`). `omarchy-shell keycast settings` opens or closes the settings panel
 

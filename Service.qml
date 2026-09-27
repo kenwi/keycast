@@ -835,6 +835,12 @@ Item {
     return persistSettings({ ignoredChords: list })
   }
 
+  function clearIgnoredChords() {
+    if (Keys.normalizeIgnoredChords(ignoredChords).length === 0) return false
+    selectedIgnore = ""
+    return persistSettings({ ignoredChords: [] })
+  }
+
   Timer {
     id: ignoreHoldTimer
     interval: 500

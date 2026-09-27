@@ -830,13 +830,25 @@ Flickable {
           onClicked: if (host.service) host.service.selectedIgnore = modelData
         }
       }
-      Button {
-        text: "Remove"
-        bordered: true
-        enabled: !!host.service && host.service.selectedIgnore !== ""
-        foreground: host.fg
-        fontFamily: host.fontFamily
-        onClicked: if (host.service) host.service.removeIgnoredChord(host.service.selectedIgnore)
+      Row {
+        spacing: Style.space(8)
+
+        Button {
+          text: "Remove"
+          bordered: true
+          enabled: !!host.service && host.service.selectedIgnore !== ""
+          foreground: host.fg
+          fontFamily: host.fontFamily
+          onClicked: if (host.service) host.service.removeIgnoredChord(host.service.selectedIgnore)
+        }
+        Button {
+          text: "Remove all"
+          bordered: true
+          enabled: !!host.service && host.service.ignoredChords && host.service.ignoredChords.length > 0
+          foreground: host.fg
+          fontFamily: host.fontFamily
+          onClicked: if (host.service) host.service.clearIgnoredChords()
+        }
       }
     }
 
@@ -849,13 +861,10 @@ Flickable {
           width: parent.width
           spacing: Style.spacing.md
 
-          Text {
-            textFormat: Text.PlainText
-            text: "Theme"
-            color: Qt.darker(host.fg, 1.4)
-            font.family: host.fontFamily
-            font.pixelSize: Style.font.caption
-            font.bold: true
+          PanelSectionHeader {
+            text: "THEME"
+            foreground: host.fg
+            fontFamily: host.fontFamily
           }
           Flow {
             width: parent.width
