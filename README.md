@@ -23,23 +23,24 @@ size on every tab.
 
 ![Center layout, Overlay](screenshots/center-overlay.png)
 
-*Center layout, Overlay page. Side and Center switch the layout. Pressed keys,
-typed characters, and the shortcut action sit in columns.*
+*Center layout, Overlay page. Side, Center, and Fullscreen switch the layout.
+Pressed keys, typed characters, preview, and the outer box sit in the left
+column. Rounding, font, linger, and the shortcut action sit in the right.*
 
 ![Center layout, Position](screenshots/center-position.png)
 
-*Center layout, Position page. Monitor, vertical and horizontal edges, edge
-padding, and scale.*
+*Center layout, Position page. Monitor, vertical, horizontal, and edge padding
+sit in one row. Scale stays on its own line.*
 
 ![Center layout, Colors](screenshots/center-colors.png)
 
-*Center layout, Colors page. Theme chips wrap across the box, with background,
-border, and font hex fields underneath.*
+*Center layout, Colors page. Theme chips wrap across the box. Background,
+border, and font each have a header and a hex field.*
 
 ![Center layout, Mouse](screenshots/center-mouse.png)
 
 *Center layout, Mouse page. Show mouse, placement, and labels sit beside the
-button, scroll, and ripple columns.*
+button, scroll, and ripple columns. Follow rate and ripple size share a line.*
 
 ![Center layout, Ignore](screenshots/center-ignore.png)
 
