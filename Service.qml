@@ -1105,6 +1105,19 @@ Item {
       if (!root.settingsPanel) return "unavailable"
       return root.toggleSettings() ? "open" : "closed"
     }
+    // Shows one settings tab. Opens the panel when it is closed.
+    // Returns "opened <page>" or "already <page>".
+    function page(name: string): string {
+      if (!root.settingsPanel) return "unavailable"
+      var allowed = ["overlay", "position", "colors", "mouse", "ignore"]
+      var next = String(name || "").toLowerCase()
+      if (allowed.indexOf(next) < 0) return "invalid"
+      var wasOpen = root.settingsPanel.opened === true
+      if (!wasOpen && typeof root.settingsPanel.open === "function")
+        root.settingsPanel.open()
+      root.settingsPanel.settingsPage = next
+      return (wasOpen ? "already" : "opened") + " " + next
+    }
     function state(): string { return root.overlayEnabled ? "on" : "off" }
     function ping(): string { return "ok" }
   }
